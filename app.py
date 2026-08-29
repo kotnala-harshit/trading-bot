@@ -13,6 +13,7 @@ from qts.forecasting import benchmark_forecasts
 from qts.paper import execute_paper_fill, mark_to_market
 from qts.providers import alpha_vantage_daily, yahoo_chart
 from qts.readiness import check_ibkr
+from qts.risk_plan import size_long_position
 from qts.safety import evaluate_live_gate
 from qts.strategy import backtest, metrics
 
@@ -22,6 +23,50 @@ st.title("Money Workspace")
 st.caption("Markets, forecasting, and royalty research in one safe workspace.")
 
 INDIAN_STOCKS = {
+    "ABB India": "ABB.NS",
+    "Adani Ports": "ADANIPORTS.NS",
+    "Ambuja Cements": "AMBUJACEM.NS",
+    "Apollo Hospitals": "APOLLOHOSP.NS",
+    "AU Small Finance Bank": "AUBANK.NS",
+    "Bajaj Finance": "BAJFINANCE.NS",
+    "Bank of Baroda": "BANKBARODA.NS",
+    "Bharat Electronics": "BEL.NS",
+    "Bharat Forge": "BHARATFORG.NS",
+    "Bharti Airtel": "BHARTIARTL.NS",
+    "BSE": "BSE.NS",
+    "Canara Bank": "CANBK.NS",
+    "Cipla": "CIPLA.NS",
+    "Coal India": "COALINDIA.NS",
+    "Container Corporation": "CONCOR.NS",
+    "Cummins India": "CUMMINSIND.NS",
+    "Dixon Technologies": "DIXON.NS",
+    "Eternal": "ETERNAL.NS",
+    "GAIL": "GAIL.NS",
+    "Hindustan Aeronautics": "HAL.NS",
+    "Hindustan Copper": "HINDCOPPER.NS",
+    "Hindustan Zinc": "HINDZINC.NS",
+    "Indian Hotels": "INDHOTEL.NS",
+    "Indian Oil": "IOC.NS",
+    "ITC": "ITC.NS",
+    "JSW Steel": "JSWSTEEL.NS",
+    "Larsen & Toubro": "LT.NS",
+    "Mahindra & Mahindra": "M&M.NS",
+    "Max Healthcare": "MAXHEALTH.NS",
+    "NMDC": "NMDC.NS",
+    "NTPC": "NTPC.NS",
+    "Oil India": "OIL.NS",
+    "ONGC": "ONGC.NS",
+    "Persistent Systems": "PERSISTENT.NS",
+    "Power Finance Corporation": "PFC.NS",
+    "Power Grid": "POWERGRID.NS",
+    "REC": "RECLTD.NS",
+    "State Bank of India": "SBIN.NS",
+    "Sun Pharma": "SUNPHARMA.NS",
+    "Tata Power": "TATAPOWER.NS",
+    "Tata Steel": "TATASTEEL.NS",
+    "Titan": "TITAN.NS",
+    "UltraTech Cement": "ULTRACEMCO.NS",
+    "Varun Beverages": "VBL.NS",
     "Reliance Industries": "RELIANCE.NS",
     "Tata Consultancy Services": "TCS.NS",
     "HDFC Bank": "HDFCBANK.NS",
@@ -38,6 +83,7 @@ def load_indian_stock(ticker: str):
 
 def render_indian_lab() -> None:
     st.caption("Phase 1 · Indian cash equities · delayed-data paper research")
+    st.success("Forward paper mandate: ₹10,00,000 · launch Monday 31 August 2026 · starts in cash")
     page = st.sidebar.radio(
         "Indian equity lab",
         [
@@ -45,7 +91,9 @@ def render_indian_lab() -> None:
             "Forecasting",
             "Trading strategy",
             "Backtest vs forward",
+            "₹10L risk plan",
             "Paper trading",
+            "Market context",
             "Data quality",
         ],
     )
@@ -65,6 +113,10 @@ def render_indian_lab() -> None:
     latest = float(frame.close.iloc[-1])
     signal = int(result.signal.iloc[-1])
     signal_label = {1: "LONG", 0: "CASH"}[signal]
+    strategy_stats = metrics(result)
+    risk_gate_passed = (
+        strategy_stats["max_drawdown_pct"] >= -10 and strategy_stats["sharpe_approx"] > 0
+    )
     st.info(
         f"Source: Yahoo Finance · {symbol} · latest observation {frame.timestamp.iloc[-1]}. This feed may be delayed and is not exchange-grade real-time data."
     )
@@ -99,7 +151,8 @@ def render_indian_lab() -> None:
         st.write(
             f"Long when the {fast}-day average is above the {slow}-day average; otherwise cash. The position is shifted one day to avoid look-ahead."
         )
-        st.json(metrics(result))
+        st.json(strategy_stats)
+        st.metric("Deployment risk gate", "PASS" if risk_gate_passed else "FAIL — PAPER CASH")
         st.plotly_chart(
             px.line(result, x="timestamp", y=["close", "fast_ma", "slow_ma"]),
             use_container_width=True,
@@ -129,10 +182,24 @@ def render_indian_lab() -> None:
         st.caption(
             "True forward paper results begin when dated paper fills are collected from today onward."
         )
+    elif page == "₹10L risk plan":
+        stop_pct = st.slider("Planning stop distance (%)", 2.0, 10.0, 5.0) / 100
+        plan = size_long_position(1_000_000, latest, stop_pct=stop_pct)
+        columns = st.columns(4)
+        columns[0].metric("Simulated capital", "₹10,00,000")
+        columns[1].metric("Maximum shares", plan.shares)
+        columns[2].metric("Planned allocation", f"₹{plan.allocation:,.0f}")
+        columns[3].metric("Risk at stop", f"₹{plan.risk_at_stop:,.0f}")
+        st.write(
+            f"Planning stop: ₹{plan.stop_price:,.2f}. Maximum 15% per stock, 0.5% risk per position, six positions, long-only."
+        )
+        st.warning(
+            "Stops can gap below the planned price. Risk controls cannot guarantee zero loss."
+        )
     elif page == "Paper trading":
         key = f"paper_{symbol}"
         if key not in st.session_state:
-            st.session_state[key] = {"cash": 100_000.0, "position": 0, "fills": []}
+            st.session_state[key] = {"cash": 1_000_000.0, "position": 0, "fills": []}
         account = st.session_state[key]
         equity = mark_to_market(account["cash"], account["position"], latest)
         columns = st.columns(4)
@@ -162,7 +229,7 @@ def render_indian_lab() -> None:
                 )
                 account["fills"].append(asdict(fill))
                 st.rerun()
-            if st.button("Apply current strategy signal"):
+            if st.button("Apply current strategy signal", disabled=not risk_gate_passed):
                 strategy_side = None
                 strategy_quantity = 0
                 if signal == 1 and account["position"] == 0:
@@ -182,6 +249,10 @@ def render_indian_lab() -> None:
                     account["fills"].append(asdict(fill))
                     st.rerun()
                 st.info("The paper account already matches the current strategy signal.")
+            if not risk_gate_passed:
+                st.error(
+                    "Automatic strategy deployment is blocked because the historical drawdown/risk gate failed. The Monday paper account remains in cash."
+                )
         except ValueError as exc:
             st.error(str(exc))
         if reset.button("Reset paper account"):
@@ -199,6 +270,35 @@ def render_indian_lab() -> None:
         st.warning(
             "This paper ledger is session-only. Download it after each session; durable scheduled tracking is the next milestone."
         )
+    elif page == "Market context":
+        context_symbols = {
+            "Nifty 50": "^NSEI",
+            "USD/INR": "INR=X",
+            "S&P 500": "^GSPC",
+            "Nasdaq": "^IXIC",
+            "Nikkei 225": "^N225",
+            "Crude oil": "CL=F",
+            "Gold": "GC=F",
+        }
+        rows = []
+        for label, ticker in context_symbols.items():
+            try:
+                context = yahoo_chart(ticker, period="5d", interval="1d").frame
+                change = (context.close.iloc[-1] / context.close.iloc[-2] - 1) * 100
+                rows.append(
+                    {
+                        "market": label,
+                        "symbol": ticker,
+                        "latest": context.close.iloc[-1],
+                        "change_pct": change,
+                    }
+                )
+            except (OSError, ValueError, TypeError, KeyError):
+                rows.append({"market": label, "symbol": ticker, "latest": None, "change_pct": None})
+        st.dataframe(pd.DataFrame(rows), use_container_width=True)
+        st.info(
+            "SGX Nifty has been replaced by GIFT Nifty. A licensed or broker-authorized feed is required before using it as a dependable live signal."
+        )
     else:
         st.json(report.__dict__)
         st.dataframe(frame.tail(100), use_container_width=True)
@@ -208,8 +308,10 @@ workspace = st.sidebar.selectbox(
     "Project",
     [
         "Indian Equity Forecasting & Paper Trading · Primary",
-        "RoyaltyIQ · Phase 2",
-        "MES and Global Markets · Phase 3",
+        "US Equities · Phase 2",
+        "Other Global Markets · Phase 3",
+        "RoyaltyIQ · Phase 4",
+        "MES Futures and Derivatives · Phase 5",
     ],
 )
 if workspace == "Indian Equity Forecasting & Paper Trading · Primary":
@@ -217,14 +319,13 @@ if workspace == "Indian Equity Forecasting & Paper Trading · Primary":
     st.stop()
 title = workspace.split(" ·")[0]
 st.header(title)
-if title == "RoyaltyIQ":
-    st.info(
-        "Phase 2 future scope: pharmaceutical research, sales forecasts, royalty valuation, risk analysis, and investment dossiers."
-    )
-else:
-    st.info(
-        "Phase 3 future scope: MES futures, US equities, and other global markets after the Indian equity workflow passes forward paper testing."
-    )
+phase_copy = {
+    "US Equities": "Phase 2: apply the validated workflow to US equities.",
+    "Other Global Markets": "Phase 3: add other exchanges market by market.",
+    "RoyaltyIQ": "Phase 4: pharmaceutical research, forecasts, royalty valuation, and risk.",
+    "MES Futures and Derivatives": "Phase 5: futures research after cash-equity paper validation.",
+}
+st.info(phase_copy[title])
 st.warning("Future modules are research tools and remain inactive.")
 st.stop()
 

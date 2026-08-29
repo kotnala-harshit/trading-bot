@@ -2,7 +2,7 @@
 
 A single, deployable MES research and operational-readiness project. It includes an upload-driven Streamlit dashboard, deterministic moving-average research baseline, OHLCV validation, cost stress, IBKR endpoint diagnostics, Docker services, CI, and hard live-trading interlocks.
 
-The primary product is Indian Equity Forecasting & Paper Trading. It combines delayed-live Indian market data, transparent walk-forward forecasting benchmarks, a long-or-cash trend strategy, development-versus-forward testing, and a session paper portfolio that cannot transmit broker orders. RoyaltyIQ is Phase 2 future scope; MES and other global markets are Phase 3.
+The primary product is Indian Equity Forecasting & Paper Trading with a ₹10,00,000 simulated mandate and a screenshot-derived watchlist. Phase 2 is US equities, Phase 3 is other global markets, Phase 4 is RoyaltyIQ, and Phase 5 is MES futures and derivatives. The system is paper-only and cannot guarantee zero losses.
 
 > The bundled CSV is synthetic. It validates the software path, not a trading edge. The dashboard never places orders. Live autonomous transmission is disabled in the committed configuration.
 
