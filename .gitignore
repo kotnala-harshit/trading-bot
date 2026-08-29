@@ -13,3 +13,7 @@ runtime/*
 artifacts/*
 !artifacts/demo_backtest.csv
 
+
+.Rhistory
+.RData
+.Rproj.user/
