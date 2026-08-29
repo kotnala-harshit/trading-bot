@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 from pathlib import Path
+import sys
 
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+
+sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 from qts.config import load_config
 from qts.data import load_ohlcv, validate_ohlcv
