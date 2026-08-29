@@ -4,3 +4,5 @@ PyYAML>=6.0
 streamlit>=1.38
 plotly>=5.24
 
+
+-e .
