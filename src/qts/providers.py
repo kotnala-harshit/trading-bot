@@ -28,9 +28,7 @@ def _normalize(frame: pd.DataFrame) -> pd.DataFrame:
     return result.sort_values("timestamp").dropna().reset_index(drop=True)
 
 
-def yahoo_chart(
-    symbol: str = "MES=F", period: str = "1y", interval: str = "1d"
-) -> MarketDataset:
+def yahoo_chart(symbol: str = "MES=F", period: str = "1y", interval: str = "1d") -> MarketDataset:
     response = requests.get(
         f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}",
         params={"range": period, "interval": interval, "events": "history"},
@@ -59,7 +57,12 @@ def alpha_vantage_daily(symbol: str, api_key: str) -> MarketDataset:
         raise ValueError("Add ALPHA_VANTAGE_API_KEY to Streamlit secrets first.")
     response = requests.get(
         "https://www.alphavantage.co/query",
-        params={"function": "TIME_SERIES_DAILY", "symbol": symbol, "outputsize": "compact", "apikey": api_key},
+        params={
+            "function": "TIME_SERIES_DAILY",
+            "symbol": symbol,
+            "outputsize": "compact",
+            "apikey": api_key,
+        },
         timeout=30,
     )
     response.raise_for_status()

@@ -11,7 +11,12 @@ def test_live_default_is_blocked():
 def test_all_live_gates_are_required():
     config = load_config("configs/production-live.yaml")
     config["execution"].update(dry_run=False, autonomous_order_transmission=True)
-    env = {"TRADING_MODE": "live", "LIVE_TRADING_ENABLED": "true", "LIVE_TRADING_ACK": LIVE_ACK, "IBKR_ACCOUNT_CONFIRMED": "true"}
+    env = {
+        "TRADING_MODE": "live",
+        "LIVE_TRADING_ENABLED": "true",
+        "LIVE_TRADING_ACK": LIVE_ACK,
+        "IBKR_ACCOUNT_CONFIRMED": "true",
+    }
     assert evaluate_live_gate(config, env).allowed
 
 
@@ -22,4 +27,3 @@ def test_paper_is_allowed_by_order_guard():
 def test_live_guard_raises():
     with pytest.raises(PermissionError):
         assert_order_allowed(load_config("configs/production-live.yaml"), {})
-

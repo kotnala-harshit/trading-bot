@@ -12,7 +12,11 @@ def doctor(config_path: str, require_ibkr: bool = False) -> int:
     config = load_config(config_path)
     status = check_ibkr(config["ibkr"]["host"], int(config["ibkr"]["port"]))
     gate = evaluate_live_gate(config)
-    report = {"environment": config["environment"], "ibkr": status.__dict__, "live_gate": {"allowed": gate.allowed, "reasons": gate.reasons}}
+    report = {
+        "environment": config["environment"],
+        "ibkr": status.__dict__,
+        "live_gate": {"allowed": gate.allowed, "reasons": gate.reasons},
+    }
     print(json.dumps(report, indent=2))
     return 1 if require_ibkr and not status.reachable else 0
 
@@ -25,4 +29,3 @@ def main() -> None:
     check.add_argument("--require-ibkr", action="store_true")
     args = parser.parse_args()
     raise SystemExit(doctor(args.config, args.require_ibkr))
-

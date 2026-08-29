@@ -13,4 +13,3 @@ def load_config(path: str | Path) -> dict:
     if missing:
         raise ValueError(f"Missing config sections: {', '.join(sorted(missing))}")
     return config
-

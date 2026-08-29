@@ -2,7 +2,7 @@
 
 A single, deployable MES research and operational-readiness project. It includes an upload-driven Streamlit dashboard, deterministic moving-average research baseline, OHLCV validation, cost stress, IBKR endpoint diagnostics, Docker services, CI, and hard live-trading interlocks.
 
-The hosted app is organized as a broader Money Workspace. MES futures is the active module; stock forecasting and RoyaltyIQ are staged as future modules so they can eventually share one Streamlit deployment without deleting their source repositories prematurely.
+The hosted app is organized as a broader Money Workspace. Indian cash equities are Phase 1, US equities are Phase 2, and other global markets are Phase 3. The Indian lab includes delayed-live data, a transparent trend baseline, a historical development-versus-forward comparison, and a session-only paper portfolio that cannot transmit broker orders. MES futures and RoyaltyIQ remain future modules.
 
 > The bundled CSV is synthetic. It validates the software path, not a trading edge. The dashboard never places orders. Live autonomous transmission is disabled in the committed configuration.
 

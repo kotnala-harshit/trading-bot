@@ -14,7 +14,9 @@ def trend_signals(frame: pd.DataFrame, fast: int = 20, slow: int = 80) -> pd.Dat
     return out
 
 
-def backtest(frame: pd.DataFrame, fast: int = 20, slow: int = 80, cost_bps: float = 1.0) -> pd.DataFrame:
+def backtest(
+    frame: pd.DataFrame, fast: int = 20, slow: int = 80, cost_bps: float = 1.0
+) -> pd.DataFrame:
     out = trend_signals(frame, fast, slow)
     out["return"] = out.close.pct_change().fillna(0)
     out["position"] = out.signal.shift(1).fillna(0)
@@ -34,4 +36,3 @@ def metrics(result: pd.DataFrame) -> dict[str, float]:
         "sharpe_approx": float((returns.mean() / volatility * np.sqrt(252)) if volatility else 0),
         "trades": int((result.turnover > 0).sum()),
     }
-

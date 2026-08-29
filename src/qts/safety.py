@@ -40,4 +40,3 @@ def assert_order_allowed(config: dict, env: dict[str, str] | None = None) -> Non
     decision = evaluate_live_gate(config, env)
     if not decision.allowed:
         raise PermissionError("Live trading blocked: " + "; ".join(decision.reasons))
-

@@ -21,8 +21,16 @@ def main() -> None:
     target = Path("runtime/heartbeat.json")
     target.parent.mkdir(exist_ok=True)
     while True:
-        target.write_text(json.dumps({"timestamp": datetime.now(UTC).isoformat(), "environment": config["environment"], "status": "healthy"}, indent=2))
+        target.write_text(
+            json.dumps(
+                {
+                    "timestamp": datetime.now(UTC).isoformat(),
+                    "environment": config["environment"],
+                    "status": "healthy",
+                },
+                indent=2,
+            )
+        )
         if args.once:
             return
         time.sleep(30)
-

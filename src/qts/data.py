@@ -20,7 +20,11 @@ class DataReport:
 
     @property
     def valid(self) -> bool:
-        return self.rows > 1 and not any((self.duplicates, self.missing_values, self.invalid_ohlc)) and self.monotonic
+        return (
+            self.rows > 1
+            and not any((self.duplicates, self.missing_values, self.invalid_ohlc))
+            and self.monotonic
+        )
 
 
 def load_ohlcv(path: str | Path) -> pd.DataFrame:
@@ -36,10 +40,17 @@ def load_ohlcv(path: str | Path) -> pd.DataFrame:
 
 
 def validate_ohlcv(frame: pd.DataFrame) -> DataReport:
-    invalid = ((frame.high < frame[["open", "close", "low"]].max(axis=1)) | (frame.low > frame[["open", "close", "high"]].min(axis=1)) | (frame.volume < 0)).sum()
+    invalid = (
+        (frame.high < frame[["open", "close", "low"]].max(axis=1))
+        | (frame.low > frame[["open", "close", "high"]].min(axis=1))
+        | (frame.volume < 0)
+    ).sum()
     return DataReport(
-        rows=len(frame), start=str(frame.timestamp.min()), end=str(frame.timestamp.max()),
-        duplicates=int(frame.timestamp.duplicated().sum()), missing_values=int(frame.isna().sum().sum()),
-        invalid_ohlc=int(invalid), monotonic=bool(frame.timestamp.is_monotonic_increasing),
+        rows=len(frame),
+        start=str(frame.timestamp.min()),
+        end=str(frame.timestamp.max()),
+        duplicates=int(frame.timestamp.duplicated().sum()),
+        missing_values=int(frame.isna().sum().sum()),
+        invalid_ohlc=int(invalid),
+        monotonic=bool(frame.timestamp.is_monotonic_increasing),
     )
-
