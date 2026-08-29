@@ -10,7 +10,7 @@ def trend_signals(frame: pd.DataFrame, fast: int = 20, slow: int = 80) -> pd.Dat
     out = frame.copy()
     out["fast_ma"] = out.close.rolling(fast).mean()
     out["slow_ma"] = out.close.rolling(slow).mean()
-    out["signal"] = np.sign(out.fast_ma - out.slow_ma).fillna(0).astype(int)
+    out["signal"] = (out.fast_ma > out.slow_ma).fillna(False).astype(int)
     return out
 
 

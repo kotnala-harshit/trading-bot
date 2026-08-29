@@ -9,6 +9,7 @@ import streamlit as st
 
 from qts.config import load_config
 from qts.data import load_ohlcv, validate_ohlcv
+from qts.forecasting import benchmark_forecasts
 from qts.paper import execute_paper_fill, mark_to_market
 from qts.providers import alpha_vantage_daily, yahoo_chart
 from qts.readiness import check_ibkr
@@ -38,8 +39,15 @@ def load_indian_stock(ticker: str):
 def render_indian_lab() -> None:
     st.caption("Phase 1 · Indian cash equities · delayed-data paper research")
     page = st.sidebar.radio(
-        "Indian stock lab",
-        ["Overview", "Strategy", "Backtest vs forward", "Paper trading", "Data quality"],
+        "Indian equity lab",
+        [
+            "Overview",
+            "Forecasting",
+            "Trading strategy",
+            "Backtest vs forward",
+            "Paper trading",
+            "Data quality",
+        ],
     )
     name = st.sidebar.selectbox("NSE instrument", list(INDIAN_STOCKS))
     symbol = INDIAN_STOCKS[name]
@@ -56,7 +64,7 @@ def render_indian_lab() -> None:
     result = backtest(frame, fast, slow, cost)
     latest = float(frame.close.iloc[-1])
     signal = int(result.signal.iloc[-1])
-    signal_label = {1: "LONG", 0: "CASH", -1: "EXIT (shorting disabled)"}[signal]
+    signal_label = {1: "LONG", 0: "CASH"}[signal]
     st.info(
         f"Source: Yahoo Finance · {symbol} · latest observation {frame.timestamp.iloc[-1]}. This feed may be delayed and is not exchange-grade real-time data."
     )
@@ -73,7 +81,21 @@ def render_indian_lab() -> None:
             use_container_width=True,
         )
         st.warning("A model signal is a research output, not a recommendation.")
-    elif page == "Strategy":
+    elif page == "Forecasting":
+        st.subheader("Walk-forward price forecasting benchmarks")
+        scores = benchmark_forecasts(frame.close.astype(float).tolist())
+        score_frame = pd.DataFrame([asdict(score) for score in scores])
+        score_frame["forecast_change_pct"] = (score_frame.next_close / latest - 1) * 100
+        st.dataframe(score_frame, use_container_width=True)
+        best = scores[0]
+        columns = st.columns(3)
+        columns[0].metric("Lowest-error model", best.model)
+        columns[1].metric("Next-close estimate", f"₹{best.next_close:,.2f}")
+        columns[2].metric("Walk-forward direction", f"{best.directional_accuracy_pct:.1f}%")
+        st.warning(
+            "Price forecasts are uncertain benchmarks, not price targets. Model selection uses walk-forward MAE and must be monitored out of sample."
+        )
+    elif page == "Trading strategy":
         st.write(
             f"Long when the {fast}-day average is above the {slow}-day average; otherwise cash. The position is shifted one day to avoid look-ahead."
         )
@@ -183,38 +205,28 @@ def render_indian_lab() -> None:
 
 
 workspace = st.sidebar.selectbox(
-    "Workspace",
+    "Project",
     [
-        "Indian stocks · Phase 1",
-        "US stocks · Phase 2",
-        "Global markets · Phase 3",
-        "MES futures · Future",
-        "Royalty intelligence · Future",
+        "Indian Equity Forecasting & Paper Trading · Primary",
+        "RoyaltyIQ · Phase 2",
+        "MES and Global Markets · Phase 3",
     ],
 )
-if workspace == "Indian stocks · Phase 1":
+if workspace == "Indian Equity Forecasting & Paper Trading · Primary":
     render_indian_lab()
     st.stop()
-if workspace != "MES futures · Future":
-    title = workspace.split(" ·")[0]
-    st.header(title)
-    if title == "US stocks":
-        st.info(
-            "Phase 2: US equities will reuse the validated Indian-stock workflow with "
-            "US-specific costs, hours, benchmarks, and data sources."
-        )
-    elif title == "Global markets":
-        st.info("Phase 3: other exchanges will be added market by market after Phase 2 passes.")
-    else:
-        st.info(
-            "Future module: pharmaceutical research, sales scenarios, royalty valuation, "
-            "risk analysis, and an investment dossier. The existing RoyaltyIQ repository "
-            "will remain intact until migration is tested."
-        )
-    st.warning(
-        "Future modules are research tools, not investment advice or automated trading systems."
+title = workspace.split(" ·")[0]
+st.header(title)
+if title == "RoyaltyIQ":
+    st.info(
+        "Phase 2 future scope: pharmaceutical research, sales forecasts, royalty valuation, risk analysis, and investment dossiers."
     )
-    st.stop()
+else:
+    st.info(
+        "Phase 3 future scope: MES futures, US equities, and other global markets after the Indian equity workflow passes forward paper testing."
+    )
+st.warning("Future modules are research tools and remain inactive.")
+st.stop()
 
 page = st.sidebar.radio(
     "Dashboard", ["Overview", "Data", "Strategy", "Validation", "IBKR readiness", "Safety gates"]
