@@ -1,0 +1,6 @@
+environment: live
+instrument: {symbol: MES, exchange: CME, currency: USD}
+ibkr: {host: 127.0.0.1, port: 7496, client_id: 73, account: "REPLACE_AND_CONFIRM"}
+execution: {dry_run: true, autonomous_order_transmission: false, duplicate_order_window_seconds: 300, max_orders_per_minute: 1}
+risk: {max_position_contracts: 1, max_daily_loss_usd: 50, kill_switch: true}
+

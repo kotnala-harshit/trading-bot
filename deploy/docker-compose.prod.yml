@@ -1,0 +1,16 @@
+services:
+  dashboard:
+    build: ..
+    restart: unless-stopped
+    ports: ["8501:8501"]
+    read_only: true
+    tmpfs: ["/tmp"]
+    volumes: ["../runtime:/app/runtime:ro", "../artifacts:/app/artifacts:ro"]
+    security_opt: ["no-new-privileges:true"]
+  runtime:
+    build: ..
+    restart: unless-stopped
+    command: ["python", "-m", "qts.runtime", "--config", "configs/production-paper.yaml"]
+    volumes: ["../runtime:/app/runtime"]
+    security_opt: ["no-new-privileges:true"]
+

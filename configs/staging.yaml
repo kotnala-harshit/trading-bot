@@ -1,0 +1,6 @@
+environment: paper
+instrument: {symbol: MES, exchange: CME, currency: USD}
+ibkr: {host: 127.0.0.1, port: 4002, client_id: 72, account: ""}
+execution: {dry_run: true, autonomous_order_transmission: false, duplicate_order_window_seconds: 300, max_orders_per_minute: 2}
+risk: {max_position_contracts: 1, max_daily_loss_usd: 100, kill_switch: true}
+
