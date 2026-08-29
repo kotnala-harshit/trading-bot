@@ -7,7 +7,7 @@ name = "quant-trading-workbench"
 version = "5.0.0"
 description = "Safety-first MES research, validation, and IBKR readiness workbench"
 requires-python = ">=3.11"
-dependencies = ["pandas>=2.1", "numpy>=1.26", "PyYAML>=6.0", "streamlit>=1.38", "plotly>=5.24"]
+dependencies = ["pandas>=2.1", "numpy>=1.26", "PyYAML>=6.0", "requests>=2.32", "streamlit>=1.38", "plotly>=5.24"]
 
 [project.optional-dependencies]
 ibkr = ["ib-insync>=0.9.86"]
@@ -24,4 +24,3 @@ testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 100
-

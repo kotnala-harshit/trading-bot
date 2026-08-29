@@ -2,6 +2,8 @@
 
 A single, deployable MES research and operational-readiness project. It includes an upload-driven Streamlit dashboard, deterministic moving-average research baseline, OHLCV validation, cost stress, IBKR endpoint diagnostics, Docker services, CI, and hard live-trading interlocks.
 
+The hosted app is organized as a broader Money Workspace. MES futures is the active module; stock forecasting and RoyaltyIQ are staged as future modules so they can eventually share one Streamlit deployment without deleting their source repositories prematurely.
+
 > The bundled CSV is synthetic. It validates the software path, not a trading edge. The dashboard never places orders. Live autonomous transmission is disabled in the committed configuration.
 
 ## Quick start
@@ -19,4 +21,3 @@ Open <http://localhost:8501>. For the full private GitHub, Streamlit Community C
 ## Safety boundary
 
 This repository is production-shaped for paper/staging operations. It is not certified as profitable, fault-tolerant, or suitable for unattended real-money trading. Live promotion requires a deliberate config change plus four runtime acknowledgements; it also requires completing the evidence checklist in [PRODUCTION_READINESS.md](PRODUCTION_READINESS.md).
-
