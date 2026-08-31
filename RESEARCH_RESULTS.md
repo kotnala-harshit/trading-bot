@@ -76,6 +76,12 @@ The selected development configuration used five stocks, 63-session risk-adjuste
 
 This model is rejected and was not promoted. A 5% loss ceiling cannot be guaranteed with individual equities because stop orders can fill below their trigger after gaps. The requested combination of a hard 5% downside boundary and double-digit returns every calendar year was not supported by this historical evidence.
 
+### Rejected exponentially weighted replacement
+
+An additional test on 1 September 2026 gave recent observations greater weight using exponentially weighted returns, volatility, and distance from exponential moving averages with 10/20/40/60-session spans. Candidate parameters were selected only on September 2016–August 2021, using the same point-in-time Nifty 50 membership, adjusted daily prices, five holdings, top-ten retention buffer, next-open execution, and 0.10% one-way research cost as the deployed ranking benchmark. The selected candidate ranked 20-session EMA distance adjusted for exponentially weighted volatility and reviewed every 60 sessions.
+
+The EMA candidate improved the combined ten-year annualized result from 16.21% to 16.76%, improved combined completed-trade wins from 58.39% to 60.53%, and modestly reduced maximum drawdown from -35.21% to -33.47%. It nevertheless failed the untouched later five-year comparison: annualized return was 12.45% versus 14.68%, completed-trade wins were 53.42% versus 66.23%, and maximum drawdown was -22.47% versus -18.70%. Its rolling three-month profitable rate was 59.18% versus 66.01%, and it beat the Nifty price index in 50.04% versus 60.38% of rolling three-month windows. The EMA model is therefore retained only as a research reference and was not promoted.
+
 ### Corporate-action total-return recheck
 
 The preferred rules were rerun on 31 August 2026 using Yahoo adjusted OHLC history and, separately, raw price-only history. Adjusted history represents dividend/split effects and avoids false momentum signals around splits and bonus-style ratio events.
