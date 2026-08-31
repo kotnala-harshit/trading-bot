@@ -6,6 +6,8 @@ The primary product is Indian Equity Forecasting & Paper Trading with a ₹10,00
 
 > The bundled CSV is synthetic. It validates the software path, not a trading edge. The dashboard never places orders. Live autonomous transmission is disabled in the committed configuration.
 
+The latest point-in-time factor search failed its blind five-year holdout and was not deployed. See [RESEARCH_RESULTS.md](RESEARCH_RESULTS.md) for the complete decision record.
+
 ## Automated paper trading on GitHub
 
 GitHub Actions scans a liquid Indian-equity watchlist every 30 minutes during NSE hours. It uses delayed Yahoo daily data, a Nifty 200-day regime filter, a 20/80-day stock trend signal, positive six-month momentum, a 45% volatility ceiling, and a robust price/volume/range anomaly veto inspired by the companion market-surveillance project. The portfolio retains a 5% planning stop, maximum six positions, 15% allocation and 0.5% planned risk per position. Results are simulated and saved in `runtime/`; the public summary is deployed through GitHub Pages.
