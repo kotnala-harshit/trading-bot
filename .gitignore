@@ -11,6 +11,8 @@ data/raw/*
 !data/raw/.gitkeep
 runtime/*
 !runtime/.gitkeep
+!runtime/paper_state.json
+!runtime/paper_ledger.csv
 artifacts/*
 !artifacts/demo_backtest.csv
 
