@@ -10,8 +10,8 @@ from zoneinfo import ZoneInfo
 
 import requests
 
-from qts.paper import execute_paper_fill, mark_to_market
-from qts.providers import yahoo_chart
+from qts.paper import apply_corporate_actions, execute_paper_fill, mark_to_market
+from qts.providers import yahoo_chart, yahoo_corporate_actions
 from qts.strategy import risk_adjusted_momentum_score
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -96,7 +96,8 @@ table{{border-collapse:collapse;width:100%;margin-top:22px}}th,td{{padding:10px;
 <p class='safe'><strong>PAPER ONLY · REAL ORDERS DISABLED</strong></p>
 <div class='cards'><div class='card'>Equity<br><strong>₹{state['last_equity']:,.2f}</strong></div>
 <div class='card'>Cash<br><strong>₹{state['cash']:,.2f}</strong></div>
-<div class='card'>Positions<br><strong>{len(state['positions'])}/{MAX_POSITIONS}</strong></div></div>
+<div class='card'>Positions<br><strong>{len(state['positions'])}/{MAX_POSITIONS}</strong></div>
+<div class='card'>Dividends<br><strong>₹{state.get('dividends_received', 0):,.2f}</strong></div></div>
 <p><strong>Status:</strong> {html.escape(state['status'])}<br><strong>Last run:</strong> {state['last_run'] or 'Not run yet'}</p>
 <table><thead><tr><th>Symbol</th><th>Shares</th><th>Entry</th><th>Latest</th><th>Value</th><th>Open P/L</th></tr></thead><tbody>{rows}</tbody></table>
 <p class='warning'>Delayed public data and GitHub schedules are not exchange-grade. Results include estimated costs but not taxes, gaps, or guaranteed fills.</p>
@@ -150,6 +151,15 @@ def run(force: bool = False) -> dict:
         render_page(state, quotes)
         return state
 
+    actions = []
+    for symbol, item in state["positions"].items():
+        item.setdefault("opened_at", state.get("last_run") or now.isoformat())
+        try:
+            actions.extend(yahoo_corporate_actions(symbol))
+        except (OSError, ValueError, TypeError, KeyError, requests.RequestException):
+            continue
+    action_messages = apply_corporate_actions(state, actions)
+
     fills = []
     equity = state["cash"] + sum(
         item["quantity"] * quotes.get(symbol, item.get("last_price", item["entry_price"]))
@@ -197,8 +207,33 @@ def run(force: bool = False) -> dict:
         )
         fills.append(fill)
         state["positions"][symbol] = {
-            "quantity": quantity, "entry_price": price, "last_price": price
+            "quantity": quantity, "entry_price": price, "last_price": price,
+            "opened_at": now.isoformat(),
         }
+
+    # Reinvest corporate-action cash toward equal weights on scheduled reviews.
+    if review_due and state["positions"]:
+        target_value = equity / MAX_POSITIONS
+        ranked_prices = {symbol: price for _, symbol, price in ranked}
+        for _, symbol, price in ranked:
+            item = state["positions"].get(symbol)
+            if not item:
+                continue
+            gap = max(0.0, target_value - item["quantity"] * price)
+            quantity = min(
+                int(gap / (price * (1 + FEE_BPS / 10_000))),
+                int(state["cash"] / (price * (1 + FEE_BPS / 10_000))),
+            )
+            if quantity < 1:
+                continue
+            old_quantity, old_cost = item["quantity"], item["quantity"] * item["entry_price"]
+            state["cash"], new_quantity, fill = execute_paper_fill(
+                state["cash"], old_quantity, symbol=symbol, side="BUY", quantity=quantity,
+                price=ranked_prices[symbol], fee_bps=FEE_BPS,
+            )
+            fills.append(fill)
+            item["quantity"] = new_quantity
+            item["entry_price"] = (old_cost + quantity * price) / new_quantity
 
     for symbol, item in state["positions"].items():
         item["last_price"] = quotes.get(symbol, item.get("last_price", item["entry_price"]))
@@ -208,7 +243,8 @@ def run(force: bool = False) -> dict:
     )
     state["last_run"] = now.isoformat()
     action = "60-session review" if review_due else "monitoring existing holdings"
-    state["status"] = f"Completed {action}; {len(fills)} paper fill(s)"
+    corporate = f"; {len(action_messages)} corporate action(s)" if action_messages else ""
+    state["status"] = f"Completed {action}; {len(fills)} paper fill(s){corporate}"
     STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
     STATE_PATH.write_text(json.dumps(state, indent=2, sort_keys=True))
     append_fills(fills)

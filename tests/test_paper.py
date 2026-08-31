@@ -1,6 +1,7 @@
 import pytest
 
-from qts.paper import execute_paper_fill, mark_to_market
+from qts.paper import apply_corporate_actions, execute_paper_fill, mark_to_market
+from qts.providers import CorporateAction
 
 
 def test_paper_buy_sell_and_mark_to_market():
@@ -22,3 +23,22 @@ def test_paper_controls_reject_overspending_and_shorting():
         execute_paper_fill(50, 0, symbol="TCS.NS", side="BUY", quantity=1, price=100)
     with pytest.raises(ValueError, match="exceeds"):
         execute_paper_fill(1_000, 0, symbol="TCS.NS", side="SELL", quantity=1, price=100)
+
+
+def test_corporate_actions_credit_dividend_adjust_split_and_deduplicate():
+    state = {
+        "cash": 100.0,
+        "positions": {"TCS.NS": {"quantity": 10, "entry_price": 200.0}},
+    }
+    actions = [
+        CorporateAction("div-1", "TCS.NS", "DIVIDEND", "2026-01-01T00:00:00+00:00", 5),
+        CorporateAction(
+            "split-1", "TCS.NS", "SPLIT", "2026-02-01T00:00:00+00:00",
+            numerator=2, denominator=1,
+        ),
+    ]
+    assert len(apply_corporate_actions(state, actions)) == 2
+    assert state["cash"] == 150
+    assert state["positions"]["TCS.NS"]["quantity"] == 20
+    assert state["positions"]["TCS.NS"]["entry_price"] == 100
+    assert apply_corporate_actions(state, actions) == []

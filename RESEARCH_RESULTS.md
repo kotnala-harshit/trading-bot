@@ -61,3 +61,14 @@ This lower-turnover version ranks historical Nifty 50 constituents by 63-session
 | Full 10y | +16.31% | +10.63% | -35.21% | 58.39% |
 
 It beats Nifty annualized over one, three, five, and ten years and exceeds a 50% trade-win rate over three, five, and ten years. It does not pass the latest six-month or one-year win-rate gate, and the ten-year drawdown remains substantial. It is retained for forward paper observation without a profitability guarantee.
+
+### Corporate-action total-return recheck
+
+The preferred rules were rerun on 31 August 2026 using Yahoo adjusted OHLC history and, separately, raw price-only history. Adjusted history represents dividend/split effects and avoids false momentum signals around splits and bonus-style ratio events.
+
+| History treatment | 5y annualized | 5y win rate | 5y drawdown | 10y annualized | 10y win rate |
+|---|---:|---:|---:|---:|---:|
+| Corporate-action adjusted | +14.31% | 66.23% | -18.70% | +16.21% | 58.39% |
+| Raw price only | +7.32% | 60.24% | -22.23% | +13.50% | 56.38% |
+
+The comparison confirms that corporate-action treatment materially changes both ranking and measured performance. It does not isolate dividends from split corrections, and Yahoo is a convenience source rather than an official corporate-action record. Forward paper events are therefore deduplicated and auditable, but any eventual live workflow would require reconciliation to NSE/company notices.
