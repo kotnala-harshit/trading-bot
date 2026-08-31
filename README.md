@@ -12,6 +12,8 @@ GitHub Actions scans a liquid Indian-equity watchlist every 30 minutes during NS
 
 This is suitable for forward-testing daily/swing decisions. GitHub schedules may be delayed and the public feed is not exchange-grade, so it is not suitable for exact intraday execution. No broker credentials are used and real orders remain disabled.
 
+The portfolio circuit breaker liquidates paper positions at a 5% drawdown, pauses entries for 28 calendar days, resets the paper high-water mark, and requires all market and stock gates to pass again before re-entry. It is not a guarantee against gaps or larger losses.
+
 ## Quick start
 
 ```bash

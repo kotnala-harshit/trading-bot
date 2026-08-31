@@ -4,7 +4,7 @@ import argparse
 import csv
 import html
 import json
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -40,8 +40,14 @@ def load_state() -> dict:
         "peak_equity": STARTING_CAPITAL,
         "last_equity": STARTING_CAPITAL,
         "last_run": None,
+        "cooldown_until": None,
         "status": "Waiting for first scheduled market-hours run",
     }
+
+
+def cooldown_active(state: dict, now: datetime) -> bool:
+    value = state.get("cooldown_until")
+    return bool(value and now < datetime.fromisoformat(value))
 
 
 def append_fills(fills: list) -> None:
@@ -127,8 +133,14 @@ def run(force: bool = False) -> dict:
     )
     state["peak_equity"] = max(state.get("peak_equity", equity), equity)
     drawdown = equity / state["peak_equity"] - 1
+    if state.get("cooldown_until") and not cooldown_active(state, now):
+        state["cooldown_until"] = None
+        state["peak_equity"] = equity
     allowed = {symbol for _, symbol, _ in sorted(candidates, reverse=True)[:MAX_POSITIONS]}
-    if drawdown <= -0.05:
+    drawdown_stop = drawdown <= -0.05 and bool(state["positions"])
+    if drawdown_stop:
+        state["cooldown_until"] = (now + timedelta(days=28)).isoformat()
+    if drawdown_stop or cooldown_active(state, now):
         allowed.clear()
 
     for symbol in list(state["positions"]):
@@ -141,6 +153,8 @@ def run(force: bool = False) -> dict:
             )
             fills.append(fill)
             del state["positions"][symbol]
+    if drawdown_stop:
+        state["peak_equity"] = state["cash"]
 
     for _, symbol, price in sorted(candidates, reverse=True):
         if symbol in state["positions"] or len(state["positions"]) >= MAX_POSITIONS:
