@@ -16,7 +16,7 @@ Yahoo-adjusted OHLC data is used for total-return research. The forward paper le
 
 This is suitable for forward-testing daily/swing decisions. GitHub schedules may be delayed and the public feed is not exchange-grade, so it is not suitable for exact intraday execution. No broker credentials are used and real orders remain disabled.
 
-The portfolio circuit breaker liquidates paper positions at a 5% drawdown, pauses entries for 28 calendar days, resets the paper high-water mark, and requires all market and stock gates to pass again before re-entry. It is not a guarantee against gaps or larger losses.
+The emergency portfolio circuit breaker liquidates paper positions at a 20% drawdown, pauses entries for 28 calendar days, resets the paper high-water mark, and requires all market and stock gates to pass again before re-entry. Historical testing showed that the previous 5% threshold repeatedly sold normal equity volatility and materially harmed results. The wider threshold preserves a final-loss backstop without pretending that ordinary drawdowns can be eliminated. It is not a guarantee against gaps or larger losses.
 
 The automation is enabled by [`configs/paper-trader.json`](configs/paper-trader.json). To stop new paper activity from GitHub, change `"enabled": true` to `false` and commit it on `main`. Existing positions remain recorded but no simulated orders are created while disabled.
 

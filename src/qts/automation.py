@@ -25,6 +25,8 @@ MAX_POSITIONS = 5
 KEEP_RANK = 10
 REVIEW_SESSIONS = 60
 FEE_BPS = 10.0
+MAX_DRAWDOWN = -0.20
+COOLDOWN_DAYS = 28
 
 
 def market_is_open(now: datetime | None = None) -> bool:
@@ -52,6 +54,10 @@ def load_state() -> dict:
 def cooldown_active(state: dict, now: datetime) -> bool:
     value = state.get("cooldown_until")
     return bool(value and now < datetime.fromisoformat(value))
+
+
+def drawdown_stop_triggered(drawdown: float, has_positions: bool) -> bool:
+    return has_positions and drawdown <= MAX_DRAWDOWN
 
 
 def trading_enabled() -> bool:
@@ -172,9 +178,9 @@ def run(force: bool = False) -> dict:
         state["peak_equity"] = equity
     ranked = sorted(candidates, reverse=True)
     allowed = {symbol for _, symbol, _ in ranked[:KEEP_RANK]}
-    drawdown_stop = drawdown <= -0.05 and bool(state["positions"])
+    drawdown_stop = drawdown_stop_triggered(drawdown, bool(state["positions"]))
     if drawdown_stop:
-        state["cooldown_until"] = (now + timedelta(days=28)).isoformat()
+        state["cooldown_until"] = (now + timedelta(days=COOLDOWN_DAYS)).isoformat()
     if drawdown_stop or cooldown_active(state, now):
         allowed.clear()
 

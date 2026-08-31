@@ -62,6 +62,12 @@ This lower-turnover version ranks historical Nifty 50 constituents by 63-session
 
 It beats Nifty annualized over one, three, five, and ten years and exceeds a 50% trade-win rate over three, five, and ten years. It does not pass the latest six-month or one-year win-rate gate, and the ten-year drawdown remains substantial. It is retained for forward paper observation without a profitability guarantee.
 
+### Circuit-breaker correction
+
+The forward paper implementation originally used a 5% portfolio drawdown stop with a 28-day cooldown. A historical replay that included this operational rule found it was too sensitive: in the later five-year sample it reduced annualized return from 14.68% to 4.14% and completed-trade win rate from 66.23% to 45.00%. Hard Nifty 200-day exits and a proposed 70/30 tactical sleeve also underperformed.
+
+The paper circuit breaker is therefore widened to an emergency-only 20% threshold while retaining the 28-day cooldown, top-five/top-ten holding buffer, 60-session reviews, anomaly veto, costs, corporate-action handling, and live-trading lock. In the later five-year replay the 20% stop did not fire; in the earlier sample it improved maximum drawdown modestly from -37.03% to -35.41% while annualized return changed from 8.55% to 8.27%. This is a safety calibration, not evidence that future losses are capped at 20%.
+
 ### Corporate-action total-return recheck
 
 The preferred rules were rerun on 31 August 2026 using Yahoo adjusted OHLC history and, separately, raw price-only history. Adjusted history represents dividend/split effects and avoids false momentum signals around splits and bonus-style ratio events.
