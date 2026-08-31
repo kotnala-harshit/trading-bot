@@ -1,7 +1,14 @@
+import pandas as pd
 import pytest
 
 from qts.data import load_ohlcv, validate_ohlcv
-from qts.strategy import backtest, metrics, trend_signals
+from qts.strategy import (
+    backtest,
+    candidate_score,
+    market_regime_is_positive,
+    metrics,
+    trend_signals,
+)
 
 
 def test_sample_data_valid():
@@ -23,3 +30,14 @@ def test_backtest_is_causal_and_finite():
 def test_invalid_parameters_rejected():
     with pytest.raises(ValueError):
         trend_signals(load_ohlcv("data/sample/mes_demo.csv"), 10, 5)
+
+
+def test_candidate_and_market_regime_filters():
+    rising = pd.DataFrame({"close": range(100, 350)})
+    assert candidate_score(rising) is not None
+    assert market_regime_is_positive(rising)
+
+    falling = rising.copy()
+    falling["close"] = list(reversed(rising["close"].tolist()))
+    assert candidate_score(falling) is None
+    assert not market_regime_is_positive(falling)

@@ -13,7 +13,7 @@ import requests
 from qts.paper import execute_paper_fill, mark_to_market
 from qts.providers import yahoo_chart
 from qts.risk_plan import size_long_position
-from qts.strategy import backtest, metrics
+from qts.strategy import candidate_score, market_regime_is_positive
 
 ROOT = Path(__file__).resolve().parents[2]
 STATE_PATH = ROOT / "runtime" / "paper_state.json"
@@ -104,16 +104,19 @@ def run(force: bool = False) -> dict:
 
     watchlist = json.loads(WATCHLIST_PATH.read_text())
     candidates, quotes = [], {}
+    try:
+        index_frame = yahoo_chart("^NSEI", period="5y", interval="1d").frame
+        positive_regime = market_regime_is_positive(index_frame)
+    except (OSError, ValueError, TypeError, KeyError, IndexError, requests.RequestException):
+        positive_regime = False
     for symbol in watchlist:
         try:
             frame = yahoo_chart(symbol, period="5y", interval="1d").frame
-            result = backtest(frame, fast=20, slow=80, cost_bps=FEE_BPS)
-            stats = metrics(result)
             price = float(frame.close.iloc[-1])
             quotes[symbol] = price
-            gate = stats["max_drawdown_pct"] >= -10 and stats["sharpe_approx"] > 0
-            if int(result.signal.iloc[-1]) == 1 and gate:
-                candidates.append((stats["sharpe_approx"], symbol, price))
+            score = candidate_score(frame)
+            if positive_regime and score is not None:
+                candidates.append((score, symbol, price))
         except (OSError, ValueError, TypeError, KeyError, IndexError, requests.RequestException):
             continue
 
@@ -163,7 +166,8 @@ def run(force: bool = False) -> dict:
         for item in state["positions"].values()
     )
     state["last_run"] = now.isoformat()
-    state["status"] = f"Completed paper scan; {len(fills)} simulated fill(s)"
+    regime = "positive" if positive_regime else "defensive/cash"
+    state["status"] = f"Completed scan; market regime {regime}; {len(fills)} fill(s)"
     STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
     STATE_PATH.write_text(json.dumps(state, indent=2, sort_keys=True))
     append_fills(fills)

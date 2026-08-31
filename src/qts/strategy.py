@@ -36,3 +36,21 @@ def metrics(result: pd.DataFrame) -> dict[str, float]:
         "sharpe_approx": float((returns.mean() / volatility * np.sqrt(252)) if volatility else 0),
         "trades": int((result.turnover > 0).sum()),
     }
+
+
+def candidate_score(frame: pd.DataFrame) -> float | None:
+    """Rank a stock using only data available at decision time."""
+    if len(frame) < 127:
+        return None
+    signal = trend_signals(frame, fast=20, slow=80).signal.iloc[-1]
+    momentum = float(frame.close.iloc[-1] / frame.close.iloc[-126] - 1)
+    volatility = float(frame.close.pct_change().tail(60).std() * np.sqrt(252))
+    if signal != 1 or momentum <= 0 or not 0 < volatility <= 0.45:
+        return None
+    return momentum / volatility
+
+
+def market_regime_is_positive(index_frame: pd.DataFrame) -> bool:
+    if len(index_frame) < 200:
+        return False
+    return bool(index_frame.close.iloc[-1] > index_frame.close.tail(200).mean())

@@ -15,7 +15,7 @@ from qts.providers import alpha_vantage_daily, yahoo_chart
 from qts.readiness import check_ibkr
 from qts.risk_plan import size_long_position
 from qts.safety import evaluate_live_gate
-from qts.strategy import backtest, metrics
+from qts.strategy import backtest, candidate_score, market_regime_is_positive, metrics
 
 ROOT = Path(__file__).parent
 st.set_page_config(page_title="Quant Trading Workbench", page_icon="📈", layout="wide")
@@ -114,9 +114,11 @@ def render_indian_lab() -> None:
     signal = int(result.signal.iloc[-1])
     signal_label = {1: "LONG", 0: "CASH"}[signal]
     strategy_stats = metrics(result)
-    risk_gate_passed = (
-        strategy_stats["max_drawdown_pct"] >= -10 and strategy_stats["sharpe_approx"] > 0
-    )
+    try:
+        market_regime = market_regime_is_positive(load_indian_stock("^NSEI").frame)
+    except (OSError, ValueError, TypeError, KeyError):
+        market_regime = False
+    risk_gate_passed = market_regime and candidate_score(frame) is not None
     st.info(
         f"Source: Yahoo Finance · {symbol} · latest observation {frame.timestamp.iloc[-1]}. This feed may be delayed and is not exchange-grade real-time data."
     )
@@ -152,7 +154,7 @@ def render_indian_lab() -> None:
             f"Long when the {fast}-day average is above the {slow}-day average; otherwise cash. The position is shifted one day to avoid look-ahead."
         )
         st.json(strategy_stats)
-        st.metric("Deployment risk gate", "PASS" if risk_gate_passed else "FAIL — PAPER CASH")
+        st.metric("Deployment gate", "PASS" if risk_gate_passed else "DEFENSIVE — CASH")
         st.plotly_chart(
             px.line(result, x="timestamp", y=["close", "fast_ma", "slow_ma"]),
             use_container_width=True,
@@ -251,7 +253,7 @@ def render_indian_lab() -> None:
                 st.info("The paper account already matches the current strategy signal.")
             if not risk_gate_passed:
                 st.error(
-                    "Automatic strategy deployment is blocked because the historical drawdown/risk gate failed. The Monday paper account remains in cash."
+                    "The broad-market, trend, momentum or volatility gate is defensive. The paper account remains in cash."
                 )
         except ValueError as exc:
             st.error(str(exc))
