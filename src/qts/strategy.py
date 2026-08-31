@@ -45,9 +45,26 @@ def candidate_score(frame: pd.DataFrame) -> float | None:
     signal = trend_signals(frame, fast=20, slow=80).signal.iloc[-1]
     momentum = float(frame.close.iloc[-1] / frame.close.iloc[-126] - 1)
     volatility = float(frame.close.pct_change().tail(60).std() * np.sqrt(252))
-    if signal != 1 or momentum <= 0 or not 0 < volatility <= 0.45:
+    if signal != 1 or momentum <= 0 or not 0 < volatility <= 0.45 or anomaly_risk(frame):
         return None
     return momentum / volatility
+
+
+def anomaly_risk(frame: pd.DataFrame) -> bool:
+    """Veto extreme price/volume observations using robust rolling statistics."""
+    if len(frame) < 61 or not {"high", "low", "close", "volume"}.issubset(frame.columns):
+        return False
+
+    def robust_z(values: pd.Series) -> float:
+        history, latest = values.iloc[-61:-1].dropna(), float(values.iloc[-1])
+        median = float(history.median())
+        deviation = float((history - median).abs().median())
+        return abs(latest - median) / max(1.4826 * deviation, 1e-12)
+
+    returns = frame.close.pct_change()
+    volume_change = np.log1p(frame.volume).diff()
+    intraday_range = (frame.high - frame.low) / frame.close
+    return robust_z(returns) > 6 or robust_z(volume_change) > 8 or robust_z(intraday_range) > 8
 
 
 def market_regime_is_positive(index_frame: pd.DataFrame) -> bool:

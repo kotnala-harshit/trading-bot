@@ -3,6 +3,7 @@ import pytest
 
 from qts.data import load_ohlcv, validate_ohlcv
 from qts.strategy import (
+    anomaly_risk,
     backtest,
     candidate_score,
     market_regime_is_positive,
@@ -41,3 +42,15 @@ def test_candidate_and_market_regime_filters():
     falling["close"] = list(reversed(rising["close"].tolist()))
     assert candidate_score(falling) is None
     assert not market_regime_is_positive(falling)
+
+
+def test_anomaly_gate_rejects_extreme_price_move():
+    frame = pd.DataFrame(
+        {
+            "close": [100 + index * 0.1 for index in range(60)] + [150],
+            "high": [101] * 60 + [155],
+            "low": [99] * 60 + [95],
+            "volume": [1_000_000] * 60 + [20_000_000],
+        }
+    )
+    assert anomaly_risk(frame)
