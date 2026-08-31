@@ -29,3 +29,19 @@ The strategy was selected only on 1 September 2016–31 August 2021. The later p
 The blind holdout failed the return, benchmark, drawdown, and win-rate objectives. The gap between development and holdout is evidence of instability/overfitting. No parameters were retuned after viewing the holdout, and this model was not promoted to the paper bot.
 
 Yahoo's convenience history and the community-maintained membership dataset are appropriate for screening, not final execution-grade validation. Returns include the stated modelled trading cost but not every Indian tax, fee, spread, or market-impact component.
+
+## Nifty 50 return/win-rate frontier — 31 August 2026
+
+Status: **promising paper candidate; not promoted because every acceptance window did not pass**.
+
+The candidate ranks historical Nifty 50 constituents by 63-session return divided by 63-session volatility, holds the top five, rebalances every 60 sessions at the next open, stays fully invested, and models 0.10% one-way costs. It was preselected from the development results because it was the highest-return configuration inside the requested 12–25% annualized-return and 60–70% trade-win bands, then evaluated on the later period.
+
+| Period | Total | Annualized | Max drawdown | Trade win rate | Nifty total |
+|---|---:|---:|---:|---:|---:|
+| Latest 6m | -11.29% | -21.37% | -14.50% | 40.00% | -3.16% |
+| Untouched latest 1y | +11.73% | +11.77% | -14.09% | 65.00% | -2.21% |
+| Latest 3y | +57.24% | +16.30% | -11.27% | 68.33% | +23.90% |
+| Later 5y holdout | +64.32% | +10.45% | -16.81% | 66.00% | +41.02% |
+| Full 10y | +355.59% | +16.38% | -33.85% | 62.56% | +174.43% |
+
+The strategy reaches both target bands over three and ten years and reaches the win-rate target over one and five years. It misses the 12% return floor over one and five years, fails both targets over six months, and has a material full-period drawdown. These mixed results justify forward paper testing but not a profitability claim or live-capital promotion.
