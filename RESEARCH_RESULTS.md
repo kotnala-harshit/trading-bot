@@ -68,6 +68,14 @@ The forward paper implementation originally used a 5% portfolio drawdown stop wi
 
 The paper circuit breaker is therefore widened to an emergency-only 20% threshold while retaining the 28-day cooldown, top-five/top-ten holding buffer, 60-session reviews, anomaly veto, costs, corporate-action handling, and live-trading lock. In the later five-year replay the 20% stop did not fire; in the earlier sample it improved maximum drawdown modestly from -37.03% to -35.41% while annualized return changed from 8.55% to 8.27%. This is a safety calibration, not evidence that future losses are capped at 20%.
 
+### Rejected short-term 5% risk-budget experiment
+
+A separate 1 September 2026 search tested point-in-time Nifty 50 constituents over ten years. The development period was September 2016 through August 2021 and the later five years were left untouched until selection. The predefined candidates varied 20/63-session momentum, risk-adjusted momentum, three/five-stock portfolios, 5/10/20-session reviews, 5/8/12% trailing exits, and 10/15/20% profit-taking exits. Each candidate included a 5% calendar-year portfolio circuit breaker, next-open execution, adjusted prices, current Groww delivery brokerage and statutory charges, sell-side DP charges, and a conservative 20.8% deduction from profitable short-term disposals for tax and cess.
+
+The selected development configuration used five stocks, 63-session risk-adjusted momentum, 20-session reviews, an 8% trailing exit, and 10% profit-taking. It returned 6.42% annualized in development but failed the untouched later period at -4.55% annualized, -25.01% maximum drawdown, 32.26% completed-trade wins, and no double-digit calendar years. The ten-year combined result was only +0.63% annualized. Costs and conservative tax deductions in the holdout were approximately ₹43,183 and ₹80,592 respectively. Overnight gaps also breached the intended 5% calendar-year boundary; the worst holdout calendar year was -6.95%.
+
+This model is rejected and was not promoted. A 5% loss ceiling cannot be guaranteed with individual equities because stop orders can fill below their trigger after gaps. The requested combination of a hard 5% downside boundary and double-digit returns every calendar year was not supported by this historical evidence.
+
 ### Corporate-action total-return recheck
 
 The preferred rules were rerun on 31 August 2026 using Yahoo adjusted OHLC history and, separately, raw price-only history. Adjusted history represents dividend/split effects and avoids false momentum signals around splits and bonus-style ratio events.
