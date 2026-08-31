@@ -1,8 +1,8 @@
 {
   "cash": 1000000.0,
   "last_equity": 1000000.0,
-  "last_run": "2026-08-31T14:13:36.710315+00:00",
+  "last_run": "2026-08-31T14:27:27.305663+00:00",
   "peak_equity": 1000000.0,
   "positions": {},
-  "status": "Completed paper scan; 0 simulated fill(s)"
+  "status": "Completed scan; market regime defensive/cash; 0 fill(s)"
 }
