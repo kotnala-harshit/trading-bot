@@ -45,3 +45,19 @@ The candidate ranks historical Nifty 50 constituents by 63-session return divide
 | Full 10y | +355.59% | +16.38% | -33.85% | 62.56% | +174.43% |
 
 The strategy reaches both target bands over three and ten years and reaches the win-rate target over one and five years. It misses the 12% return floor over one and five years, fails both targets over six months, and has a material full-period drawdown. These mixed results justify forward paper testing but not a profitability claim or live-capital promotion.
+
+## Buffered long-hold Nifty 50 strategy — 31 August 2026
+
+Status: **preferred forward-paper candidate; live trading remains disabled**.
+
+This lower-turnover version ranks historical Nifty 50 constituents by 63-session risk-adjusted momentum, holds five stocks, reviews every 60 sessions, and retains an existing holding while it remains in the top ten. A stock can therefore remain invested across multiple reviews rather than being sold and repurchased automatically. The same next-open execution and 0.10% one-way cost assumptions apply.
+
+| Period | Strategy annualized | Nifty annualized | Max drawdown | Completed-trade win rate |
+|---|---:|---:|---:|---:|
+| Latest 6m | -21.37% | -6.24% | -14.50% | 40.00% |
+| Latest 1y | -0.73% | -2.22% | -15.47% | 46.15% |
+| Latest 3y | +12.72% | +7.41% | -18.36% | 63.04% |
+| Later 5y holdout | +13.78% | +7.12% | -18.70% | 66.23% |
+| Full 10y | +16.31% | +10.63% | -35.21% | 58.39% |
+
+It beats Nifty annualized over one, three, five, and ten years and exceeds a 50% trade-win rate over three, five, and ten years. It does not pass the latest six-month or one-year win-rate gate, and the ten-year drawdown remains substantial. It is retained for forward paper observation without a profitability guarantee.
