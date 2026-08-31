@@ -1,6 +1,9 @@
 name: CI
 on:
   push:
+    paths-ignore:
+      - "runtime/**"
+      - "docs/**"
   pull_request:
 permissions:
   contents: read
@@ -25,4 +28,3 @@ jobs:
       - uses: docker/setup-buildx-action@v3
       - uses: docker/build-push-action@v6
         with: {context: ., push: false, tags: quant-trading-workbench:ci}
-
