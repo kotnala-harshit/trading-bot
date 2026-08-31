@@ -10,11 +10,13 @@ The latest point-in-time factor search failed its blind five-year holdout and wa
 
 ## Automated paper trading on GitHub
 
-GitHub Actions scans a liquid Indian-equity watchlist every 30 minutes during NSE hours. It uses delayed Yahoo daily data, a Nifty 200-day regime filter, a 20/80-day stock trend signal, positive six-month momentum, a 45% volatility ceiling, and a robust price/volume/range anomaly veto inspired by the companion market-surveillance project. The portfolio retains a 5% planning stop, maximum six positions, 15% allocation and 0.5% planned risk per position. Results are simulated and saved in `runtime/`; the public summary is deployed through GitHub Pages.
+GitHub Actions monitors the paper portfolio every 30 minutes during NSE hours. Every 60 market sessions it ranks the current Nifty 50 by 63-session risk-adjusted momentum, holds five stocks, and retains existing holdings while they remain in the top ten. A robust price/volume/range anomaly veto remains active for new selections. Results are simulated and saved in `runtime/`; the public summary is deployed through GitHub Pages.
 
 This is suitable for forward-testing daily/swing decisions. GitHub schedules may be delayed and the public feed is not exchange-grade, so it is not suitable for exact intraday execution. No broker credentials are used and real orders remain disabled.
 
 The portfolio circuit breaker liquidates paper positions at a 5% drawdown, pauses entries for 28 calendar days, resets the paper high-water mark, and requires all market and stock gates to pass again before re-entry. It is not a guarantee against gaps or larger losses.
+
+The automation is enabled by [`configs/paper-trader.json`](configs/paper-trader.json). To stop new paper activity from GitHub, change `"enabled": true` to `false` and commit it on `main`. Existing positions remain recorded but no simulated orders are created while disabled.
 
 ## Quick start
 

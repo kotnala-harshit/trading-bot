@@ -12,16 +12,18 @@ import requests
 
 from qts.paper import execute_paper_fill, mark_to_market
 from qts.providers import yahoo_chart
-from qts.risk_plan import size_long_position
-from qts.strategy import candidate_score, market_regime_is_positive
+from qts.strategy import risk_adjusted_momentum_score
 
 ROOT = Path(__file__).resolve().parents[2]
 STATE_PATH = ROOT / "runtime" / "paper_state.json"
 LEDGER_PATH = ROOT / "runtime" / "paper_ledger.csv"
 WATCHLIST_PATH = ROOT / "data" / "indian_watchlist.json"
+CONTROL_PATH = ROOT / "configs" / "paper-trader.json"
 PAGE_PATH = ROOT / "docs" / "index.html"
 STARTING_CAPITAL = 1_000_000.0
-MAX_POSITIONS = 6
+MAX_POSITIONS = 5
+KEEP_RANK = 10
+REVIEW_SESSIONS = 60
 FEE_BPS = 10.0
 
 
@@ -41,6 +43,8 @@ def load_state() -> dict:
         "last_equity": STARTING_CAPITAL,
         "last_run": None,
         "cooldown_until": None,
+        "last_scan_date": None,
+        "sessions_since_review": REVIEW_SESSIONS,
         "status": "Waiting for first scheduled market-hours run",
     }
 
@@ -48,6 +52,10 @@ def load_state() -> dict:
 def cooldown_active(state: dict, now: datetime) -> bool:
     value = state.get("cooldown_until")
     return bool(value and now < datetime.fromisoformat(value))
+
+
+def trading_enabled() -> bool:
+    return bool(json.loads(CONTROL_PATH.read_text()).get("enabled", False))
 
 
 def append_fills(fills: list) -> None:
@@ -100,6 +108,13 @@ table{{border-collapse:collapse;width:100%;margin-top:22px}}th,td{{padding:10px;
 def run(force: bool = False) -> dict:
     state = load_state()
     now = datetime.now(UTC)
+    if not trading_enabled():
+        state["status"] = "Disabled from GitHub control file; no paper orders"
+        state["last_run"] = now.isoformat()
+        STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        STATE_PATH.write_text(json.dumps(state, indent=2, sort_keys=True))
+        render_page(state, {})
+        return state
     if not force and not market_is_open(now):
         state["status"] = "Skipped: NSE market is closed"
         state["last_run"] = now.isoformat()
@@ -108,23 +123,32 @@ def run(force: bool = False) -> dict:
         render_page(state, {})
         return state
 
+    india_day = now.astimezone(ZoneInfo("Asia/Kolkata")).date().isoformat()
+    if state.get("last_scan_date") != india_day:
+        state["sessions_since_review"] = state.get("sessions_since_review", REVIEW_SESSIONS) + 1
+        state["last_scan_date"] = india_day
+    review_due = not state["positions"] or state["sessions_since_review"] >= REVIEW_SESSIONS
     watchlist = json.loads(WATCHLIST_PATH.read_text())
+    scan_symbols = watchlist if review_due else list(state["positions"])
     candidates, quotes = [], {}
-    try:
-        index_frame = yahoo_chart("^NSEI", period="5y", interval="1d").frame
-        positive_regime = market_regime_is_positive(index_frame)
-    except (OSError, ValueError, TypeError, KeyError, IndexError, requests.RequestException):
-        positive_regime = False
-    for symbol in watchlist:
+    for symbol in scan_symbols:
         try:
             frame = yahoo_chart(symbol, period="5y", interval="1d").frame
             price = float(frame.close.iloc[-1])
             quotes[symbol] = price
-            score = candidate_score(frame)
-            if positive_regime and score is not None:
+            score = risk_adjusted_momentum_score(frame)
+            if score is not None:
                 candidates.append((score, symbol, price))
         except (OSError, ValueError, TypeError, KeyError, IndexError, requests.RequestException):
             continue
+
+    if review_due and len(candidates) < 40:
+        state["status"] = f"Skipped review: only {len(candidates)}/50 valid Nifty quotes"
+        state["last_run"] = now.isoformat()
+        STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        STATE_PATH.write_text(json.dumps(state, indent=2, sort_keys=True))
+        render_page(state, quotes)
+        return state
 
     fills = []
     equity = state["cash"] + sum(
@@ -136,7 +160,8 @@ def run(force: bool = False) -> dict:
     if state.get("cooldown_until") and not cooldown_active(state, now):
         state["cooldown_until"] = None
         state["peak_equity"] = equity
-    allowed = {symbol for _, symbol, _ in sorted(candidates, reverse=True)[:MAX_POSITIONS]}
+    ranked = sorted(candidates, reverse=True)
+    allowed = {symbol for _, symbol, _ in ranked[:KEEP_RANK]}
     drawdown_stop = drawdown <= -0.05 and bool(state["positions"])
     if drawdown_stop:
         state["cooldown_until"] = (now + timedelta(days=28)).isoformat()
@@ -146,7 +171,7 @@ def run(force: bool = False) -> dict:
     for symbol in list(state["positions"]):
         item = state["positions"][symbol]
         price = quotes.get(symbol, item.get("last_price", item["entry_price"]))
-        if symbol not in allowed or price <= item["entry_price"] * 0.95:
+        if drawdown_stop or cooldown_active(state, now) or (review_due and symbol not in allowed):
             state["cash"], _, fill = execute_paper_fill(
                 state["cash"], item["quantity"], symbol=symbol, side="SELL",
                 quantity=item["quantity"], price=price, fee_bps=FEE_BPS,
@@ -156,12 +181,14 @@ def run(force: bool = False) -> dict:
     if drawdown_stop:
         state["peak_equity"] = state["cash"]
 
-    for _, symbol, price in sorted(candidates, reverse=True):
+    if review_due and not cooldown_active(state, now):
+        state["sessions_since_review"] = 0
+    for _, symbol, price in (ranked if review_due else []):
         if symbol in state["positions"] or len(state["positions"]) >= MAX_POSITIONS:
             continue
-        plan = size_long_position(equity, price, stop_pct=0.05)
+        allocation = min(equity / MAX_POSITIONS, state["cash"])
         affordable = int(state["cash"] / (price * (1 + FEE_BPS / 10_000)))
-        quantity = min(plan.shares, affordable)
+        quantity = min(int(allocation / (price * (1 + FEE_BPS / 10_000))), affordable)
         if quantity < 1:
             continue
         state["cash"], _, fill = execute_paper_fill(
@@ -180,8 +207,8 @@ def run(force: bool = False) -> dict:
         for item in state["positions"].values()
     )
     state["last_run"] = now.isoformat()
-    regime = "positive" if positive_regime else "defensive/cash"
-    state["status"] = f"Completed scan; market regime {regime}; {len(fills)} fill(s)"
+    action = "60-session review" if review_due else "monitoring existing holdings"
+    state["status"] = f"Completed {action}; {len(fills)} paper fill(s)"
     STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
     STATE_PATH.write_text(json.dumps(state, indent=2, sort_keys=True))
     append_fills(fills)

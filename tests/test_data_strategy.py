@@ -8,6 +8,7 @@ from qts.strategy import (
     candidate_score,
     market_regime_is_positive,
     metrics,
+    risk_adjusted_momentum_score,
     trend_signals,
 )
 
@@ -42,6 +43,11 @@ def test_candidate_and_market_regime_filters():
     falling["close"] = list(reversed(rising["close"].tolist()))
     assert candidate_score(falling) is None
     assert not market_regime_is_positive(falling)
+
+
+def test_risk_adjusted_momentum_accepts_valid_history():
+    frame = pd.DataFrame({"close": [100 + index + index % 3 for index in range(80)]})
+    assert risk_adjusted_momentum_score(frame) is not None
 
 
 def test_anomaly_gate_rejects_extreme_price_move():

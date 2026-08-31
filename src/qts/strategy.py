@@ -50,6 +50,17 @@ def candidate_score(frame: pd.DataFrame) -> float | None:
     return momentum / volatility
 
 
+def risk_adjusted_momentum_score(frame: pd.DataFrame, lookback: int = 63) -> float | None:
+    """Score the long-hold Nifty strategy without requiring a fresh crossover."""
+    if len(frame) < lookback + 1:
+        return None
+    momentum = float(frame.close.iloc[-1] / frame.close.iloc[-lookback - 1] - 1)
+    volatility = float(frame.close.pct_change().tail(lookback).std() * np.sqrt(252))
+    if not 0 < volatility or anomaly_risk(frame):
+        return None
+    return momentum / volatility
+
+
 def anomaly_risk(frame: pd.DataFrame) -> bool:
     """Veto extreme price/volume observations using robust rolling statistics."""
     if len(frame) < 61 or not {"high", "low", "close", "volume"}.issubset(frame.columns):
