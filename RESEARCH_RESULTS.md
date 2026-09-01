@@ -4,9 +4,9 @@
 
 Status: **research completed; paper activation remains locked**.
 
-The baseline used 31 current liquid US large caps, adjusted Yahoo OHLC history, five holdings, a top-ten retention buffer, 63-session risk-adjusted momentum, 60-session reviews, 20% volatility targeting, next-open execution, and 0.05% one-way costs. Parameters were developed on the first five years and checked once on the untouched later five years.
+The upgraded baseline used community point-in-time S&P 500 membership, adjusted Yahoo OHLC history, five holdings, a top-ten retention buffer, 63-session risk-adjusted momentum, 60-session reviews, 20% volatility targeting, next-open execution, 0.05% one-way costs, adjusted SPY, and USD/INR attribution. Free Yahoo history was available for 611 of 721 requested historical tickers (84.7%), so removed companies remain underrepresented. The community membership file ends on 30 June 2026, before the test end, and therefore also fails the freshness gate.
 
-The holdout returned 12.50% annualized versus 12.46% for adjusted SPY. Maximum drawdown was -20.29% versus -24.50%, and 55.22% of 67 closed trades were profitable. This suggests modest risk reduction but no meaningful demonstrated excess return. Because the fixed current shortlist has survivorship bias and the model does not yet fully account for investor-specific dividend withholding, tax, or INR currency effects, it is not promoted to paper trading.
+The later five-year result returned 13.49% annualized in USD versus 12.46% for adjusted SPY and 19.65% in INR after currency translation versus 18.56% for SPY. Maximum drawdown was -48.06% versus -24.50%, only 42.70% of 89 closed trades were profitable, and the strategy beat SPY in 33.83% of rolling 12-month windows. A 0.75 maximum-correlation selection experiment reduced holdout return to 8.59% without materially improving drawdown and was rejected. This period is no longer untouched because it informed that diagnostic. The 25% US-India treaty dividend-withholding ceiling for an individual is recorded but not deducted because adjusted prices do not separate reinvested gross dividends reliably. Coverage, drawdown, rolling-comparison, withholding, and fresh-forward gates therefore fail; no US paper orders are enabled.
 
 ## Free-hand point-in-time factor search — 31 August 2026
 

@@ -17,8 +17,9 @@ def test_us_research_simulation_is_finite():
                 "close": [100 + offset + day * (offset + 1) / 100 for day in range(400)],
             }
         )
-        for offset in range(6)
+        for offset in range(5)
     }
+    frames["STOCK4"].loc[300:, ["open", "close"]] = None
     benchmark = pd.DataFrame(
         {"timestamp": dates, "close": [100 + day / 100 for day in range(400)]}
     )
@@ -26,3 +27,4 @@ def test_us_research_simulation_is_finite():
     assert result["cagr"] > 0
     assert -1 < result["max_drawdown"] <= 0
     assert set(result).issuperset({"3m", "6m", "9m", "12m"})
+    assert result["forced_stale_exits"] >= 1

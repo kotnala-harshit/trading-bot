@@ -1,66 +1,166 @@
 {
-  "generated_at": "2026-09-01T22:36:39.830691+00:00",
+  "generated_at": "2026-09-01T23:03:05.215909+00:00",
   "currency": "USD",
   "benchmark": "SPY adjusted total-return proxy",
-  "universe": "Fixed 31-stock liquid research shortlist",
-  "survivorship_bias": true,
+  "universe": "Point-in-time community S&P 500 membership",
+  "membership_source": "https://raw.githubusercontent.com/fja05680/sp500/master/S%26P%20500%20Historical%20Components%20%26%20Changes%20(Updated).csv",
+  "membership_latest": "2026-06-30",
+  "membership_current": false,
+  "requested_symbols": 721,
+  "downloaded_symbols": 611,
+  "price_coverage": 0.8474341192787794,
+  "residual_survivorship_bias": true,
+  "withholding_rate": 0.25,
+  "withholding_modelled": false,
+  "holdout_reused_after_baseline_review": true,
   "cost_bps_one_way": 5.0,
+  "promotion_passed": false,
+  "correlation_experiment": {
+    "status": "rejected",
+    "limit": 0.75,
+    "development": {
+      "cagr": 0.17907984473256278,
+      "max_drawdown": -0.2207225647565877,
+      "benchmark_cagr": 0.17830726809014807,
+      "benchmark_max_drawdown": -0.337172709124672,
+      "inr_cagr": 0.20213104810966231,
+      "benchmark_inr_cagr": 0.20134336746781245,
+      "sharpe": 1.0367029869908404,
+      "win_rate": 0.7096774193548387,
+      "trades": 93,
+      "forced_stale_exits": 1,
+      "3m": {
+        "profitable": 0.792468619246862,
+        "beat_benchmark": 0.4887029288702929,
+        "median": 0.049452914854466234,
+        "worst": -0.18104177231885277
+      },
+      "6m": {
+        "profitable": 0.8330388692579506,
+        "beat_benchmark": 0.5265017667844523,
+        "median": 0.09506591601064329,
+        "worst": -0.1415009774183067
+      },
+      "9m": {
+        "profitable": 0.8512628624883068,
+        "beat_benchmark": 0.5799812909260992,
+        "median": 0.14180344859021043,
+        "worst": -0.1025731193702848
+      },
+      "12m": {
+        "profitable": 0.9075546719681908,
+        "beat_benchmark": 0.6192842942345924,
+        "median": 0.18099913684357216,
+        "worst": -0.0825658584483171
+      }
+    },
+    "holdout": {
+      "cagr": 0.08589711828704272,
+      "max_drawdown": -0.48044560901683264,
+      "benchmark_cagr": 0.12464835687210085,
+      "benchmark_max_drawdown": -0.24496392197775063,
+      "inr_cagr": 0.14478645308632032,
+      "benchmark_inr_cagr": 0.18563921181034138,
+      "sharpe": 0.4105249009052123,
+      "win_rate": 0.43820224719101125,
+      "trades": 89,
+      "forced_stale_exits": 0,
+      "3m": {
+        "profitable": 0.4626364399664148,
+        "beat_benchmark": 0.327455919395466,
+        "median": -0.0061810292108465115,
+        "worst": -0.24067074886143458
+      },
+      "6m": {
+        "profitable": 0.44060283687943264,
+        "beat_benchmark": 0.3129432624113475,
+        "median": -0.017236368211535513,
+        "worst": -0.25837544360485354
+      },
+      "9m": {
+        "profitable": 0.3652582159624413,
+        "beat_benchmark": 0.27981220657276995,
+        "median": -0.04006028335837841,
+        "worst": -0.29286241973943694
+      },
+      "12m": {
+        "profitable": 0.3522954091816367,
+        "beat_benchmark": 0.2844311377245509,
+        "median": -0.07876160610471916,
+        "worst": -0.278607790450663
+      }
+    }
+  },
   "development": {
-    "cagr": 0.2222324993051279,
-    "max_drawdown": -0.21242869068370684,
-    "benchmark_cagr": 0.17830724874515358,
-    "benchmark_max_drawdown": -0.33717246288083347,
-    "sharpe": 1.3262109851698607,
-    "win_rate": 0.7368421052631579,
-    "trades": 57,
+    "cagr": 0.18462360173372505,
+    "max_drawdown": -0.22073363913299138,
+    "benchmark_cagr": 0.17830726809014807,
+    "benchmark_max_drawdown": -0.337172709124672,
+    "inr_cagr": 0.20778318646487604,
+    "benchmark_inr_cagr": 0.20134336746781245,
+    "sharpe": 1.0488223833315278,
+    "win_rate": 0.7204301075268817,
+    "trades": 93,
+    "forced_stale_exits": 1,
     "3m": {
-      "profitable": 0.8443514644351464,
-      "median": 0.05277148210346194,
-      "worst": -0.13199842072381762
+      "profitable": 0.798326359832636,
+      "beat_benchmark": 0.499581589958159,
+      "median": 0.05061076835135481,
+      "worst": -0.18105360114845948
     },
     "6m": {
-      "profitable": 0.9204946996466431,
-      "median": 0.10523801051830217,
-      "worst": -0.05974425757466062
+      "profitable": 0.8277385159010601,
+      "beat_benchmark": 0.5468197879858657,
+      "median": 0.09481815448510056,
+      "worst": -0.14151632314744178
     },
     "9m": {
-      "profitable": 0.9822263797942001,
-      "median": 0.14657842768726348,
-      "worst": -0.0649888679076982
+      "profitable": 0.8475210477081384,
+      "beat_benchmark": 0.5743685687558466,
+      "median": 0.14208666271495396,
+      "worst": -0.10256856165649797
     },
     "12m": {
-      "profitable": 0.9990059642147118,
-      "median": 0.19767782024729208,
-      "worst": -0.0015491254426439616
+      "profitable": 0.911530815109344,
+      "beat_benchmark": 0.6003976143141153,
+      "median": 0.17442257061230404,
+      "worst": -0.08866903418366567
     }
   },
   "holdout": {
-    "cagr": 0.12496033777239512,
-    "max_drawdown": -0.202892541213748,
-    "benchmark_cagr": 0.12464840552347045,
-    "benchmark_max_drawdown": -0.24496393860941024,
-    "sharpe": 0.7401508851228651,
-    "win_rate": 0.5522388059701493,
-    "trades": 67,
+    "cagr": 0.1349103897389512,
+    "max_drawdown": -0.4805924622339339,
+    "benchmark_cagr": 0.12464835687210085,
+    "benchmark_max_drawdown": -0.24496392197775063,
+    "inr_cagr": 0.19645776543688442,
+    "benchmark_inr_cagr": 0.18563921181034138,
+    "sharpe": 0.5339576410621694,
+    "win_rate": 0.42696629213483145,
+    "trades": 89,
+    "forced_stale_exits": 0,
     "3m": {
-      "profitable": 0.6750629722921915,
-      "median": 0.03432579340067554,
-      "worst": -0.17139586723823097
+      "profitable": 0.47103274559193953,
+      "beat_benchmark": 0.35600335852225024,
+      "median": -0.004481419605933512,
+      "worst": -0.24417757226908643
     },
     "6m": {
-      "profitable": 0.7056737588652482,
-      "median": 0.07040467308564757,
-      "worst": -0.1758401507218883
+      "profitable": 0.43351063829787234,
+      "beat_benchmark": 0.33067375886524825,
+      "median": -0.01746567762800244,
+      "worst": -0.2510979084843261
     },
     "9m": {
-      "profitable": 0.7061032863849765,
-      "median": 0.14952237325117523,
-      "worst": -0.19507743794811416
+      "profitable": 0.428169014084507,
+      "beat_benchmark": 0.3370892018779343,
+      "median": -0.032029483695990346,
+      "worst": -0.2537539789777348
     },
     "12m": {
-      "profitable": 0.8143712574850299,
-      "median": 0.19723538724843692,
-      "worst": -0.16490248649531947
+      "profitable": 0.4121756487025948,
+      "beat_benchmark": 0.3383233532934132,
+      "median": -0.0406145335861855,
+      "worst": -0.27519633166308133
     }
   }
 }
