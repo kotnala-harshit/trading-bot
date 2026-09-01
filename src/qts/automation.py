@@ -20,6 +20,7 @@ LEDGER_PATH = ROOT / "runtime" / "paper_ledger.csv"
 WATCHLIST_PATH = ROOT / "data" / "indian_watchlist.json"
 CONTROL_PATH = ROOT / "configs" / "paper-trader.json"
 PAGE_PATH = ROOT / "docs" / "index.html"
+US_RESULTS_PATH = ROOT / "artifacts" / "us_phase2_results.json"
 STARTING_CAPITAL = 1_000_000.0
 MAX_POSITIONS = 5
 KEEP_RANK = 10
@@ -126,6 +127,12 @@ def render_page(state: dict, quotes: dict[str, float]) -> None:
     successful_scan = state.get("last_successful_scan") or "Not completed yet"
     last_attempt = state.get("last_attempt") or state.get("last_run") or "Not run yet"
     chart_data = json.dumps(state.get("equity_history", []), separators=(",", ":"))
+    us_results = json.loads(US_RESULTS_PATH.read_text()) if US_RESULTS_PATH.exists() else {}
+    us_holdout = us_results.get("holdout", {})
+    us_cagr = us_holdout.get("cagr")
+    us_benchmark = us_holdout.get("benchmark_cagr")
+    us_drawdown = us_holdout.get("max_drawdown")
+    us_win_rate = us_holdout.get("win_rate")
     page = f"""<!doctype html><html><head><meta charset='utf-8'>
 <meta name='viewport' content='width=device-width,initial-scale=1'>
 <title>Indian Equity Paper Trader</title><style>
@@ -157,9 +164,9 @@ header{{display:flex;justify-content:space-between;align-items:end;padding:34px 
 <section id='activity' class='card activity'><div class='section-head'><div><h2>Recent activity</h2><p>Auditable paper fills</p></div></div><ul>{activity_rows}</ul></section>
 <section class='card status'><div><h2>System status</h2><p>{html.escape(state['status'])}</p></div><div class='status-details'><span id='schedule-health' class='health' data-scan='{successful_scan}'>Checking schedule…</span><span>Market data<br><strong>{html.escape(state.get('latest_data_at') or 'Not available')}</strong></span><span>Last attempt<br><strong>{html.escape(last_attempt)}</strong></span></div></section>
 </main>
-<main id='us' class='grid market-panel'><section class='card phase-hero'><div><h2>US equities · Phase 2</h2><p>Separate research track for liquid US large-cap stocks</p></div><span class='locked'>RESEARCH LOCKED</span></section>
-<section class='card metric'><small>Proposed universe</small><strong>S&amp;P 500</strong><small>Point-in-time membership required</small></section><section class='card metric'><small>Benchmark</small><strong>S&amp;P 500</strong><small>Total-return comparison</small></section><section class='card metric'><small>Currency</small><strong>USD / INR</strong><small>FX attribution required</small></section><section class='card metric'><small>Paper capital</small><strong>Not started</strong><small>No simulated orders</small></section>
-<section class='card checklist'><h2>Before paper activation</h2><ul><li>Survivorship-free US universe and corporate actions</li><li>US commissions, spread, withholding and India tax treatment</li><li>Independent development and untouched holdout test</li><li>US market calendar, session and stale-data controls</li><li>Separate paper state, ledger and emergency stop</li></ul></section><section class='card roadmap'><h2>Promotion rule</h2><p>Phase 2 will activate only after its own historical validation passes. Indian results are not assumed to transfer to US equities.</p></section></main>
+<main id='us' class='grid market-panel'><section class='card phase-hero'><div><h2>US equities · Phase 2</h2><p>Ten-year adjusted-price study · last five years held out</p></div><span class='locked'>VALIDATION REVIEW · LOCKED</span></section>
+<section class='card metric'><small>Holdout annualized</small><strong>{us_cagr:.2%}</strong><small>SPY adjusted: {us_benchmark:.2%}</small></section><section class='card metric'><small>Maximum drawdown</small><strong>{us_drawdown:.2%}</strong><small>SPY adjusted: {us_holdout.get('benchmark_max_drawdown'):.2%}</small></section><section class='card metric'><small>Closed-trade win rate</small><strong>{us_win_rate:.1%}</strong><small>{us_holdout.get('trades', 0)} closed trades</small></section><section class='card metric'><small>Paper capital</small><strong>Not started</strong><small>No simulated orders</small></section>
+<section class='card checklist'><h2>What the test says</h2><ul><li>Return approximately matched adjusted SPY after estimated 5 bps one-way costs</li><li>Drawdown was lower, but still exceeded 20%</li><li>Current fixed shortlist creates survivorship bias</li><li>Dividend withholding, investor tax and INR FX are incomplete</li><li>Point-in-time constituents are required before paper activation</li></ul></section><section class='card roadmap'><h2>Promotion rule</h2><p>Keep locked until a survivorship-free holdout demonstrates meaningful improvement over SPY and a separate US paper ledger is ready.</p></section></main>
 <main id='global' class='grid market-panel'><section class='card phase-hero'><div><h2>Other global markets · Phase 3</h2><p>Market-by-market research, never one mixed unvalidated pool</p></div><span class='locked'>RESEARCH LOCKED</span></section>
 <section class='card metric'><small>Initial markets</small><strong>UK · EU · Japan</strong><small>One exchange at a time</small></section><section class='card metric'><small>Benchmarks</small><strong>FTSE · STOXX · Nikkei</strong><small>Local total-return indices</small></section><section class='card metric'><small>Currency</small><strong>Multi-FX</strong><small>Base return reported in INR</small></section><section class='card metric'><small>Paper capital</small><strong>Not started</strong><small>No simulated orders</small></section>
 <section class='card checklist'><h2>Before paper activation</h2><ul><li>Exchange-specific membership, holidays and trading hours</li><li>Local currency, dividends and withholding taxes</li><li>Liquidity and data-quality gates for each market</li><li>Separate historical holdout and benchmark comparison</li><li>Separate ledgers so results cannot contaminate phases</li></ul></section><section class='card roadmap'><h2>Promotion rule</h2><p>Each country must pass independently. Markets that fail remain visible as research but cannot place paper orders.</p></section></main>

@@ -1,5 +1,13 @@
 # Indian Equity Strategy Research
 
+## Phase 2 US equities baseline — 1 September 2026
+
+Status: **research completed; paper activation remains locked**.
+
+The baseline used 31 current liquid US large caps, adjusted Yahoo OHLC history, five holdings, a top-ten retention buffer, 63-session risk-adjusted momentum, 60-session reviews, 20% volatility targeting, next-open execution, and 0.05% one-way costs. Parameters were developed on the first five years and checked once on the untouched later five years.
+
+The holdout returned 12.50% annualized versus 12.46% for adjusted SPY. Maximum drawdown was -20.29% versus -24.50%, and 55.22% of 67 closed trades were profitable. This suggests modest risk reduction but no meaningful demonstrated excess return. Because the fixed current shortlist has survivorship bias and the model does not yet fully account for investor-specific dividend withholding, tax, or INR currency effects, it is not promoted to paper trading.
+
 ## Free-hand point-in-time factor search — 31 August 2026
 
 Status: **rejected; not deployed**.

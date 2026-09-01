@@ -1,0 +1,66 @@
+{
+  "generated_at": "2026-09-01T22:36:39.830691+00:00",
+  "currency": "USD",
+  "benchmark": "SPY adjusted total-return proxy",
+  "universe": "Fixed 31-stock liquid research shortlist",
+  "survivorship_bias": true,
+  "cost_bps_one_way": 5.0,
+  "development": {
+    "cagr": 0.2222324993051279,
+    "max_drawdown": -0.21242869068370684,
+    "benchmark_cagr": 0.17830724874515358,
+    "benchmark_max_drawdown": -0.33717246288083347,
+    "sharpe": 1.3262109851698607,
+    "win_rate": 0.7368421052631579,
+    "trades": 57,
+    "3m": {
+      "profitable": 0.8443514644351464,
+      "median": 0.05277148210346194,
+      "worst": -0.13199842072381762
+    },
+    "6m": {
+      "profitable": 0.9204946996466431,
+      "median": 0.10523801051830217,
+      "worst": -0.05974425757466062
+    },
+    "9m": {
+      "profitable": 0.9822263797942001,
+      "median": 0.14657842768726348,
+      "worst": -0.0649888679076982
+    },
+    "12m": {
+      "profitable": 0.9990059642147118,
+      "median": 0.19767782024729208,
+      "worst": -0.0015491254426439616
+    }
+  },
+  "holdout": {
+    "cagr": 0.12496033777239512,
+    "max_drawdown": -0.202892541213748,
+    "benchmark_cagr": 0.12464840552347045,
+    "benchmark_max_drawdown": -0.24496393860941024,
+    "sharpe": 0.7401508851228651,
+    "win_rate": 0.5522388059701493,
+    "trades": 67,
+    "3m": {
+      "profitable": 0.6750629722921915,
+      "median": 0.03432579340067554,
+      "worst": -0.17139586723823097
+    },
+    "6m": {
+      "profitable": 0.7056737588652482,
+      "median": 0.07040467308564757,
+      "worst": -0.1758401507218883
+    },
+    "9m": {
+      "profitable": 0.7061032863849765,
+      "median": 0.14952237325117523,
+      "worst": -0.19507743794811416
+    },
+    "12m": {
+      "profitable": 0.8143712574850299,
+      "median": 0.19723538724843692,
+      "worst": -0.16490248649531947
+    }
+  }
+}

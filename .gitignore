@@ -15,6 +15,7 @@ runtime/*
 !runtime/paper_ledger.csv
 artifacts/*
 !artifacts/demo_backtest.csv
+!artifacts/us_phase2_results.json
 
 
 .Rhistory
