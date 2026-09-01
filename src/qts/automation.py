@@ -122,8 +122,8 @@ table{{border-collapse:collapse;width:100%;margin-top:22px}}th,td{{padding:10px;
 const health=document.getElementById('schedule-health'), scan=Date.parse(health.dataset.scan);
 const india=new Date(Date.now()+330*60000), minutes=india.getUTCHours()*60+india.getUTCMinutes();
 const market=india.getUTCDay()>0&&india.getUTCDay()<6&&minutes>=555&&minutes<=930;
-const stale=!Number.isFinite(scan)||(Date.now()-scan)>60*60*1000;
-health.textContent=market&&stale?'Warning: no successful market scan in the last hour.':'Schedule health: recent scan or market closed.';
+const stale=!Number.isFinite(scan)||(Date.now()-scan)>20*60*1000;
+health.textContent=market&&stale?'Warning: no successful market scan in the last 20 minutes.':'Schedule health: recent scan or market closed.';
 health.className=market&&stale?'stale':'safe';
 </script>
 </body></html>"""
@@ -151,25 +151,28 @@ def run(force: bool = False) -> dict:
         return state
 
     india_day = now.astimezone(ZoneInfo("Asia/Kolkata")).date().isoformat()
-    if state.get("last_scan_date") != india_day:
-        state["sessions_since_review"] = state.get("sessions_since_review", REVIEW_SESSIONS) + 1
-        state["last_scan_date"] = india_day
-    review_due = not state["positions"] or state["sessions_since_review"] >= REVIEW_SESSIONS
+    new_session = state.get("last_scan_date") != india_day
+    session_count = state.get("sessions_since_review", REVIEW_SESSIONS) + int(new_session)
+    review_due = not state["positions"] or session_count >= REVIEW_SESSIONS
     watchlist = json.loads(WATCHLIST_PATH.read_text())
     scan_symbols = watchlist if review_due else list(state["positions"])
     candidates, quotes, latest_data_at = [], {}, None
     for symbol in scan_symbols:
         try:
-            frame = yahoo_chart(symbol, period="5y", interval="1d").frame
+            frame = yahoo_chart(
+                symbol, period="5y" if review_due else "1d",
+                interval="1d" if review_due else "5m",
+            ).frame
             if not quote_is_current(frame.timestamp.iloc[-1], india_day):
                 continue
             price = float(frame.close.iloc[-1])
             quotes[symbol] = price
             timestamp = frame.timestamp.iloc[-1]
             latest_data_at = timestamp if latest_data_at is None else max(latest_data_at, timestamp)
-            score = risk_adjusted_momentum_score(frame)
-            if score is not None:
-                candidates.append((score, symbol, price))
+            if review_due:
+                score = risk_adjusted_momentum_score(frame)
+                if score is not None:
+                    candidates.append((score, symbol, price))
         except (OSError, ValueError, TypeError, KeyError, IndexError, requests.RequestException):
             continue
 
@@ -187,13 +190,18 @@ def run(force: bool = False) -> dict:
         render_page(state, quotes)
         return state
 
+    state["last_scan_date"] = india_day
+    state["sessions_since_review"] = session_count
+
     actions = []
-    for symbol, item in state["positions"].items():
-        item.setdefault("opened_at", state.get("last_run") or now.isoformat())
-        try:
-            actions.extend(yahoo_corporate_actions(symbol))
-        except (OSError, ValueError, TypeError, KeyError, requests.RequestException):
-            continue
+    if state.get("last_corporate_action_date") != india_day:
+        for symbol, item in state["positions"].items():
+            item.setdefault("opened_at", state.get("last_run") or now.isoformat())
+            try:
+                actions.extend(yahoo_corporate_actions(symbol))
+            except (OSError, ValueError, TypeError, KeyError, requests.RequestException):
+                continue
+        state["last_corporate_action_date"] = india_day
     action_messages = apply_corporate_actions(state, actions)
 
     fills = []

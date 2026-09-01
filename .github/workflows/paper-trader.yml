@@ -2,9 +2,9 @@ name: NSE paper trader
 
 on:
   schedule:
-    # Off-peak minutes reduce GitHub scheduler delays and dropped jobs.
-    - cron: "52 3 * * 1-5"
-    - cron: "7,22,37,52 4-9 * * 1-5"
+    # Five minutes is GitHub cron's maximum frequency; offset minutes reduce congestion.
+    - cron: "47,52,57 3 * * 1-5"
+    - cron: "2,7,12,17,22,27,32,37,42,47,52,57 4-9 * * 1-5"
   workflow_dispatch:
     inputs:
       force:
