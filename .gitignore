@@ -13,6 +13,8 @@ runtime/*
 !runtime/.gitkeep
 !runtime/paper_state.json
 !runtime/paper_ledger.csv
+!runtime/us_paper_state.json
+!runtime/us_paper_ledger.csv
 artifacts/*
 !artifacts/demo_backtest.csv
 !artifacts/us_phase2_results.json
