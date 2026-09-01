@@ -1,0 +1,44 @@
+{
+  "cash": 6749.535598930359,
+  "exposure_target": 0.4,
+  "last_attempt": "2026-09-01T23:50:36.701027+00:00",
+  "last_equity": 9998.37558000946,
+  "last_run": "2026-09-01T23:50:36.701027+00:00",
+  "last_scan_date": "2026-09-01",
+  "last_successful_scan": "2026-09-01T23:50:36.701027+00:00",
+  "peak_equity": 10000.0,
+  "positions": {
+    "AMGN": {
+      "entry_price": 438.1199951171875,
+      "last_price": 438.1199951171875,
+      "opened_at": "2026-09-01T23:50:36.701027+00:00",
+      "quantity": 1
+    },
+    "CRL": {
+      "entry_price": 282.3399963378906,
+      "last_price": 282.3399963378906,
+      "opened_at": "2026-09-01T23:50:36.701027+00:00",
+      "quantity": 2
+    },
+    "MPC": {
+      "entry_price": 383.0,
+      "last_price": 383.0,
+      "opened_at": "2026-09-01T23:50:36.701027+00:00",
+      "quantity": 2
+    },
+    "PSX": {
+      "entry_price": 252.02000427246094,
+      "last_price": 252.02000427246094,
+      "opened_at": "2026-09-01T23:50:36.701027+00:00",
+      "quantity": 3
+    },
+    "VLO": {
+      "entry_price": 361.989990234375,
+      "last_price": 361.989990234375,
+      "opened_at": "2026-09-01T23:50:36.701027+00:00",
+      "quantity": 2
+    }
+  },
+  "sessions_since_review": 0,
+  "status": "US paper review; 5 fill(s); 40% exposure"
+}
