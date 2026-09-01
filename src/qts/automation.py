@@ -22,6 +22,7 @@ CONTROL_PATH = ROOT / "configs" / "paper-trader.json"
 PAGE_PATH = ROOT / "docs" / "index.html"
 US_RESULTS_PATH = ROOT / "artifacts" / "us_phase2_results.json"
 US_STATE_PATH = ROOT / "runtime" / "us_paper_state.json"
+PHASE25_RESULTS_PATH = ROOT / "artifacts" / "phase25_results.json"
 STARTING_CAPITAL = 1_000_000.0
 MAX_POSITIONS = 5
 KEEP_RANK = 10
@@ -168,6 +169,19 @@ def render_page(state: dict, quotes: dict[str, float]) -> None:
             f"<td>{result.get('trades', 0)}</td></tr>"
         )
     us_defensive_rows = "".join(us_defensive_rows)
+    phase25 = json.loads(PHASE25_RESULTS_PATH.read_text()) if PHASE25_RESULTS_PATH.exists() else {}
+    phase25_rows = []
+    for label in ("3m", "6m", "9m", "12m", "3y", "5y", "10y"):
+        result = phase25.get("timeline", {}).get(label, {})
+        phase25_rows.append(
+            f"<tr><td><strong>{label.upper()}</strong></td>"
+            f"<td>₹{result.get('ending_value_inr', 1_000_000):,.0f}</td>"
+            f"<td>{result.get('total_return' if label.endswith('m') else 'cagr', 0):+.2%}</td>"
+            f"<td class='negative'>{result.get('max_drawdown', 0):.2%}</td>"
+            f"<td>{result.get('win_rate', 0):.1%}</td>"
+            f"<td>{result.get('closed_trades', 0)}</td></tr>"
+        )
+    phase25_rows = "".join(phase25_rows)
     page = f"""<!doctype html><html><head><meta charset='utf-8'>
 <meta name='viewport' content='width=device-width,initial-scale=1'>
 <title>Indian Equity Paper Trader</title><style>
@@ -184,7 +198,7 @@ header{{display:flex;justify-content:space-between;align-items:end;padding:34px 
 </style></head><body><div class='shell'>
 <nav><div class='brand'><i></i>Paperfolio</div><div class='links'><a href='#performance'>Performance</a><a href='#holdings'>Holdings</a><a href='#activity'>Activity</a></div><span class='paper'>PAPER ONLY</span></nav>
 <header><div><h1>Indian equity portfolio</h1><p>Automated Nifty 50 momentum research · real orders disabled</p></div><a class='pause' href='https://github.com/kotnala-harshit/trading-bot/edit/main/configs/paper-trader.json'>Pause in GitHub</a></header>
-<div class='markets'><button class='active' data-market='india'>India · Phase 1</button><button data-market='us'>US · Phase 2</button><button data-market='global'>Global · Phase 3</button></div>
+<div class='markets'><button class='active' data-market='india'>India · Phase 1</button><button data-market='us'>US · Phase 2</button><button data-market='phase25'>India + US · Phase 2.5</button><button data-market='global'>Global · Phase 3</button></div>
 <main id='india' class='grid market-panel active'>
 <section class='card metric'><small>Portfolio value</small><strong>₹{equity:,.0f}</strong><small class='{'positive' if total_return >= 0 else 'negative'}'>{total_return:+.2%} since start</small></section>
 <section class='card metric'><small>Invested</small><strong>₹{invested:,.0f}</strong><small>{exposure:.0%} current exposure</small></section>
@@ -205,6 +219,10 @@ header{{display:flex;justify-content:space-between;align-items:end;padding:34px 
 <section class='card checklist'><h2>What the test says</h2><ul><li>Paper observation uses $10,000—not real converted or broker-held funds</li><li>Five-year return trailed SPY and drawdown reached {us_drawdown:.1%}</li><li>{us_win_rate:.1%} of {us_holdout.get('trades', 0)} closed trades were profitable</li><li>{us_results.get('requested_symbols', 0) - us_results.get('downloaded_symbols', 0)} historical symbols failed free-data checks; membership ends {us_results.get('membership_latest')}</li><li>25% treaty withholding is documented but not separable from adjusted prices</li></ul></section><section class='card roadmap'><h2>Safety status</h2><p>Paper observation is active, but promotion remains rejected. No broker credentials or real-order path exist. Disable with <code>us_enabled</code> in the GitHub control file.</p></section>
 <section class='card' style='grid-column:span 12'><div class='section-head'><div><h2>Capital-preservation diagnostic</h2><p>7% volatility target · 40% maximum exposure · SPY 200-day EMA cash gate</p></div></div><div class='table-wrap'><table><thead><tr><th>Window</th><th>Strategy USD</th><th>Max drawdown</th><th>Trade win rate</th><th>Closed trades</th></tr></thead><tbody>{us_defensive_rows}</tbody></table></div><p class='warning'>Drawdown moved near 10%, but the 70–80% win target did not hold across horizons. This is diagnostic evidence, not a promoted model.</p></section>
 <section class='card' style='grid-column:span 12'><div class='section-head'><div><h2>Unconstrained baseline</h2><p>Month rows show total return; year rows show annualized return</p></div></div><div class='table-wrap'><table><thead><tr><th>Window</th><th>Strategy USD</th><th>SPY USD</th><th>Strategy INR</th><th>Max drawdown</th><th>Trade win rate</th></tr></thead><tbody>{us_timeline_rows}</tbody></table></div></section></main>
+<main id='phase25' class='grid market-panel'><section class='card phase-hero'><div><h2>India + US rotation · Phase 2.5</h2><p>₹10 lakh historical simulation · no paper or live deployment</p></div><span class='locked'>RESEARCH ONLY</span></section>
+<section class='card metric'><small>Rule</small><strong>20 sessions</strong><small>Rotate using prior 63-session signal</small></section><section class='card metric'><small>Maximum exposure</small><strong>60%</strong><small>Remaining capital stays simulated cash</small></section><section class='card metric'><small>Later 5y annualized</small><strong>{phase25.get('holdout', {}).get('cagr', 0):.2%}</strong><small>Drawdown {phase25.get('holdout', {}).get('max_drawdown', 0):.2%}</small></section><section class='card metric'><small>Later 5y win rate</small><strong>{phase25.get('holdout', {}).get('win_rate', 0):.1%}</strong><small>{phase25.get('holdout', {}).get('closed_trades', 0)} closed rotations</small></section>
+<section class='card checklist'><h2>Strategy</h2><ul><li>Compare Nifty 50 and SPY converted to INR</li><li>Choose the stronger positive risk-adjusted trend</li><li>Require price above its 200-day exponential average</li><li>Hold cash when neither market passes</li><li>Model 0.10% cost per weight change</li></ul></section><section class='card roadmap'><h2>Decision</h2><p>Rejected for deployment. The later sample earned less than either benchmark and recent win rates were weak. Nifty is a price-index proxy while adjusted SPY includes distributions, so this remains screening evidence.</p></section>
+<section class='card' style='grid-column:span 12'><div class='section-head'><div><h2>₹10 lakh historical result</h2><p>Month rows show total return; year rows show annualized return</p></div></div><div class='table-wrap'><table><thead><tr><th>Window</th><th>Ending value</th><th>Return</th><th>Max drawdown</th><th>Rotation win rate</th><th>Closed rotations</th></tr></thead><tbody>{phase25_rows}</tbody></table></div></section></main>
 <main id='global' class='grid market-panel'><section class='card phase-hero'><div><h2>Other global markets · Phase 3</h2><p>Market-by-market research, never one mixed unvalidated pool</p></div><span class='locked'>RESEARCH LOCKED</span></section>
 <section class='card metric'><small>Initial markets</small><strong>UK · EU · Japan</strong><small>One exchange at a time</small></section><section class='card metric'><small>Benchmarks</small><strong>FTSE · STOXX · Nikkei</strong><small>Local total-return indices</small></section><section class='card metric'><small>Currency</small><strong>Multi-FX</strong><small>Base return reported in INR</small></section><section class='card metric'><small>Paper capital</small><strong>Not started</strong><small>No simulated orders</small></section>
 <section class='card checklist'><h2>Before paper activation</h2><ul><li>Exchange-specific membership, holidays and trading hours</li><li>Local currency, dividends and withholding taxes</li><li>Liquidity and data-quality gates for each market</li><li>Separate historical holdout and benchmark comparison</li><li>Separate ledgers so results cannot contaminate phases</li></ul></section><section class='card roadmap'><h2>Promotion rule</h2><p>Each country must pass independently. Markets that fail remain visible as research but cannot place paper orders.</p></section></main>

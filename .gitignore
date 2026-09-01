@@ -18,6 +18,7 @@ runtime/*
 artifacts/*
 !artifacts/demo_backtest.csv
 !artifacts/us_phase2_results.json
+!artifacts/phase25_results.json
 
 
 .Rhistory

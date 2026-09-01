@@ -71,5 +71,6 @@ def test_dashboard_records_and_renders_portfolio_history(tmp_path, monkeypatch) 
     assert "Risk monitor" in output
     assert "Recent activity" in output
     assert "US equities · Phase 2" in output
+    assert "India + US rotation · Phase 2.5" in output
     assert "Other global markets · Phase 3" in output
     assert state["equity_history"][0]["nifty"] == 25_000

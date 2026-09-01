@@ -1,5 +1,23 @@
 # Indian Equity Strategy Research
 
+## Phase 2.5 India–US rotation — 2 September 2026
+
+Status: **researched and rejected; not deployed**.
+
+The test started each window with ₹10,00,000 and compared the Nifty 50 price index with adjusted SPY converted into INR using USD/INR. Every 20 sessions it selected the market with the stronger positive 63-session return divided by volatility, required that market to be above its 200-day exponential average, invested at most 60%, and otherwise held simulated cash. Signals were lagged, and each weight change cost 0.10%.
+
+| Window | Ending value | Return | Max drawdown | Closed-rotation win rate |
+|---|---:|---:|---:|---:|
+| 3 months | ₹9,84,522 | -1.55% total | -2.96% | 33.33% |
+| 6 months | ₹10,57,687 | +5.77% total | -3.06% | 25.00% |
+| 9 months | ₹10,45,326 | +4.53% total | -3.06% | 20.00% |
+| 12 months | ₹10,77,311 | +7.73% total | -3.06% | 33.33% |
+| 3 years | ₹12,59,848 | +8.00% annualized | -5.82% | 71.43% |
+| 5 years | ₹12,39,198 | +4.38% annualized | -9.66% | 56.52% |
+| 10 years | ₹18,86,588 | +6.56% annualized | -16.50% | 69.77% |
+
+The first five years returned 8.78% annualized with a -16.50% drawdown; the later five-year sample returned only 4.34% annualized with a -9.66% drawdown, versus 6.92% for Nifty and 18.56% for SPY translated to INR. The rule therefore reduced later drawdown but sacrificed too much return. Recent 3–12 month win rates also failed. Nifty is a price-index proxy while adjusted SPY includes distributions, and taxes, withholding, spreads, and actual currency-conversion charges are incomplete. Phase 2.5 remains visible research only; no scheduler, ledger, or orders were created.
+
 ## Phase 2 US equities baseline — 1 September 2026
 
 Status: **research completed; paper activation remains locked**.
