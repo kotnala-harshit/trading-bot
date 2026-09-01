@@ -4,7 +4,18 @@ from pathlib import Path
 import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from scripts.us_phase2_research import price_history_is_usable, simulate
+from scripts.us_phase2_research import (
+    price_history_is_usable,
+    reused_membership_symbols,
+    simulate,
+)
+
+
+def test_reused_ticker_is_excluded():
+    membership = pd.Series(
+        [frozenset({"OLD"}), frozenset(), frozenset({"OLD", "STABLE"})]
+    )
+    assert reused_membership_symbols(membership) == {"OLD"}
 
 
 def test_us_research_simulation_is_finite():

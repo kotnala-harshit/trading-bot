@@ -25,6 +25,8 @@ def simulate(
     frames: dict[str, pd.DataFrame], benchmark: pd.DataFrame, start, end,
     membership: pd.Series | None = None, fx: pd.DataFrame | None = None,
     correlation_limit: float | None = None,
+    target_vol: float = 0.20, min_exposure: float = 0.5, max_exposure: float = 1.0,
+    regime_days: int | None = None, review_sessions: int = 60, keep_rank: int = 10,
 ) -> dict:
     full_calendar = pd.DatetimeIndex(benchmark.timestamp.dt.tz_localize(None)).normalize()
     full_calendar = full_calendar[
@@ -46,9 +48,13 @@ def simulate(
     returns = close.pct_change(fill_method=None)
     scores = (close.pct_change(63) / (returns.rolling(63).std() * math.sqrt(252))).shift(1)
     exposure = (
-        0.20 / (index_history.pct_change().rolling(20).std().shift(1) * math.sqrt(252))
-    ).clip(0.5, 1)
-    cash, positions, entries, trades, forced_exits, last_review = CAPITAL, {}, {}, [], 0, -60
+        target_vol / (index_history.pct_change().rolling(20).std().shift(1) * math.sqrt(252))
+    ).clip(min_exposure, max_exposure)
+    if regime_days:
+        exposure *= index_history.shift(1) > index_history.ewm(span=regime_days).mean().shift(1)
+    cash, positions, entries, trades, forced_exits, last_review = (
+        CAPITAL, {}, {}, [], 0, -review_sessions
+    )
     curve = []
     for day_number, day in enumerate(calendar):
         po, pc = opens.loc[day], close.loc[day]
@@ -70,12 +76,12 @@ def simulate(
                 if sell:
                     cash += sell * prices[symbol] * (1 - COST)
                     positions[symbol] -= sell
-        if not positions or day_number - last_review >= 60:
+        if not positions or day_number - last_review >= review_sessions:
             score = scores.loc[day].replace([np.inf, -np.inf], np.nan).dropna()
             if membership is not None:
                 eligible = membership.asof(day)
                 score = score[score.index.isin(eligible)]
-            candidates = list(score.nlargest(30).index)
+            candidates = list(score.nlargest(max(30, keep_rank)).index)
             ranked = []
             correlations = returns.loc[:day, candidates].tail(63).corr()
             for symbol in candidates:
@@ -83,7 +89,7 @@ def simulate(
                     abs(correlations.loc[symbol, held]) <= correlation_limit for held in ranked
                 ):
                     ranked.append(symbol)
-                if len(ranked) == 10:
+                if len(ranked) == keep_rank:
                     break
             keep = set(ranked)
             for symbol, quantity in list(positions.items()):
@@ -177,6 +183,19 @@ def price_history_is_usable(frame: pd.DataFrame) -> bool:
     return len(frame) >= 200 and jumps.max() <= 0.60 and internal_gap <= 45
 
 
+def reused_membership_symbols(membership: pd.Series) -> set[str]:
+    """Exclude symbols with separate index-membership spells; Yahoo may reuse the ticker."""
+    symbols = set().union(*membership.tolist())
+    return {
+        symbol
+        for symbol in symbols
+        if (symbol in membership.iloc[0]) + sum(
+            symbol in current and symbol not in previous
+            for previous, current in zip(membership.iloc[:-1], membership.iloc[1:])
+        ) > 1
+    }
+
+
 def json_safe(value):
     if isinstance(value, dict):
         return {key: json_safe(item) for key, item in value.items()}
@@ -191,8 +210,10 @@ def main() -> None:
     dates = pd.DatetimeIndex(benchmark.timestamp.dt.tz_localize(None)).normalize()
     start, split, end = dates.min(), dates.min() + pd.DateOffset(years=5), dates.max()
     membership = membership[membership.index <= end]
+    reused_symbols = reused_membership_symbols(membership)
     symbols = sorted(
         set(membership.asof(start)).union(*membership[membership.index >= start].tolist())
+        - reused_symbols
     )
     with ThreadPoolExecutor(max_workers=16) as pool:
         datasets = [dataset for dataset in pool.map(fetch, symbols) if dataset is not None]
@@ -216,17 +237,26 @@ def main() -> None:
     diversified_holdout = simulate(
         frames, benchmark, split, end, membership, fx, correlation_limit=0.75
     )
+    windows = (
+        ("3m", pd.DateOffset(months=3)),
+        ("6m", pd.DateOffset(months=6)),
+        ("9m", pd.DateOffset(months=9)),
+        ("12m", pd.DateOffset(months=12)),
+        ("3y", pd.DateOffset(years=3)),
+        ("5y", pd.DateOffset(years=5)),
+        ("10y", pd.DateOffset(years=10)),
+    )
     timeline = {
         label: simulate(frames, benchmark, max(start, end - offset), end, membership, fx)
-        for label, offset in (
-            ("3m", pd.DateOffset(months=3)),
-            ("6m", pd.DateOffset(months=6)),
-            ("9m", pd.DateOffset(months=9)),
-            ("12m", pd.DateOffset(months=12)),
-            ("3y", pd.DateOffset(years=3)),
-            ("5y", pd.DateOffset(years=5)),
-            ("10y", pd.DateOffset(years=10)),
+        for label, offset in windows
+    }
+    defensive_timeline = {
+        label: simulate(
+            frames, benchmark, max(start, end - offset), end, membership, fx,
+            target_vol=0.07, min_exposure=0, max_exposure=0.4,
+            regime_days=200, review_sessions=120, keep_rank=15,
         )
+        for label, offset in windows
     }
     coverage = len(frames) / len(symbols)
     membership_current = membership.index.max() >= end - pd.Timedelta(days=7)
@@ -250,6 +280,7 @@ def main() -> None:
         "membership_current": membership_current,
         "requested_symbols": len(symbols),
         "downloaded_symbols": len(frames),
+        "excluded_reused_tickers": sorted(reused_symbols),
         "rejected_price_histories": rejected_histories,
         "price_coverage": coverage,
         "residual_survivorship_bias": coverage < 0.98,
@@ -259,6 +290,15 @@ def main() -> None:
         "cost_bps_one_way": COST * 10_000,
         "promotion_passed": promoted,
         "timeline": timeline,
+        "risk_reduction_experiment": {
+            "status": "diagnostic_only",
+            "target_vol": 0.07,
+            "max_exposure": 0.4,
+            "regime_ema_days": 200,
+            "review_sessions": 120,
+            "keep_rank": 15,
+            "timeline": defensive_timeline,
+        },
         "correlation_experiment": {
             "status": "rejected",
             "limit": 0.75,

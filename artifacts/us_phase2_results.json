@@ -1,13 +1,67 @@
 {
-  "generated_at": "2026-09-01T23:23:03.109109+00:00",
+  "generated_at": "2026-09-01T23:41:16.782749+00:00",
   "currency": "USD",
   "benchmark": "SPY adjusted total-return proxy",
   "universe": "Point-in-time community S&P 500 membership",
   "membership_source": "https://raw.githubusercontent.com/fja05680/sp500/master/S%26P%20500%20Historical%20Components%20%26%20Changes%20(Updated).csv",
   "membership_latest": "2026-06-30",
   "membership_current": false,
-  "requested_symbols": 721,
-  "downloaded_symbols": 590,
+  "requested_symbols": 677,
+  "downloaded_symbols": 552,
+  "excluded_reused_tickers": [
+    "AAL",
+    "AMD",
+    "AMP",
+    "AN",
+    "BR",
+    "CBE",
+    "CCI",
+    "CE",
+    "CEG",
+    "CF",
+    "CIEN",
+    "CNC",
+    "COV",
+    "DD",
+    "DELL",
+    "DG",
+    "DOW",
+    "DXC",
+    "EQT",
+    "ESV",
+    "FISV",
+    "FL",
+    "FMC",
+    "FSLR",
+    "GAS",
+    "GGP",
+    "H",
+    "HCA",
+    "HLT",
+    "HP",
+    "HRS",
+    "IR",
+    "JBL",
+    "KDP",
+    "KMI",
+    "KSU",
+    "LDOS",
+    "MEE",
+    "MIR",
+    "MXIM",
+    "NE",
+    "OI",
+    "OKE",
+    "PCG",
+    "PTC",
+    "Q",
+    "RIG",
+    "SNDK",
+    "TEL",
+    "TER",
+    "TMUS",
+    "TT"
+  ],
   "rejected_price_histories": [
     "APC",
     "AVB",
@@ -27,11 +81,10 @@
     "NKTR",
     "PARA",
     "PBI",
-    "PCG",
     "SPLS",
     "STI"
   ],
-  "price_coverage": 0.8183079056865464,
+  "price_coverage": 0.8153618906942393,
   "residual_survivorship_bias": true,
   "withholding_rate": 0.25,
   "withholding_modelled": false,
@@ -40,17 +93,17 @@
   "promotion_passed": false,
   "timeline": {
     "3m": {
-      "total_return": 0.060522172535489416,
-      "cagr": 0.26274655570650407,
-      "max_drawdown": -0.15209661380737838,
+      "total_return": 0.0052853142741855486,
+      "cagr": 0.021148541797879172,
+      "max_drawdown": -0.16444741618465408,
       "benchmark_cagr": 0.027508276287227407,
       "benchmark_max_drawdown": -0.04494652583696357,
       "benchmark_total_return": 0.006858672937944954,
-      "inr_total_return": 0.05567196166638522,
-      "inr_cagr": 0.2399741624570244,
+      "inr_total_return": 0.0006877246300327489,
+      "inr_cagr": 0.0027331313143843516,
       "benchmark_inr_cagr": 0.00897817424183689,
-      "sharpe": 0.24989023641724445,
-      "win_rate": 0.6,
+      "sharpe": -0.0668013517472201,
+      "win_rate": 0.4,
       "trades": 5,
       "forced_stale_exits": 0,
       "ending_positions": {
@@ -61,10 +114,10 @@
         "MPC": 0.09182129100166025
       },
       "3m": {
-        "profitable": 0.5,
-        "beat_benchmark": 0.5,
-        "median": -0.0037419547066288583,
-        "worst": -0.021380713540774865
+        "profitable": 0.0,
+        "beat_benchmark": 0.0,
+        "median": -0.046149252335632995,
+        "worst": -0.0669471694693331
       },
       "6m": {
         "profitable": null,
@@ -86,18 +139,18 @@
       }
     },
     "6m": {
-      "total_return": 0.3649561294508823,
-      "cagr": 0.8607311198912067,
-      "max_drawdown": -0.34585534553952235,
-      "benchmark_cagr": 0.2443389800950344,
-      "benchmark_max_drawdown": -0.07675642932637639,
-      "benchmark_total_return": 0.11574982145416102,
-      "inr_total_return": 0.42542337321606527,
-      "inr_cagr": 1.0288822099895754,
-      "benchmark_inr_cagr": 0.35678776633724385,
-      "sharpe": 1.2408347249523717,
-      "win_rate": 0.5555555555555556,
-      "trades": 9,
+      "total_return": 0.058566086749638924,
+      "cagr": 0.12030080906963425,
+      "max_drawdown": -0.14842627348298998,
+      "benchmark_cagr": 0.24433875807350702,
+      "benchmark_max_drawdown": -0.07675651186050247,
+      "benchmark_total_return": 0.1157497217107788,
+      "inr_total_return": 0.1054603218301442,
+      "inr_cagr": 0.22154047785861963,
+      "benchmark_inr_cagr": 0.35678752425201044,
+      "sharpe": 0.47614280690269123,
+      "win_rate": 0.5,
+      "trades": 10,
       "forced_stale_exits": 0,
       "ending_positions": {
         "CRL": -0.03235315128144434,
@@ -107,16 +160,16 @@
         "TMO": -0.041469769631443
       },
       "3m": {
-        "profitable": 0.9538461538461539,
-        "beat_benchmark": 0.9230769230769231,
-        "median": 0.3008424727098242,
-        "worst": -0.0897336636973236
+        "profitable": 0.9846153846153847,
+        "beat_benchmark": 0.8923076923076924,
+        "median": 0.17995477827029327,
+        "worst": -0.04586666614099699
       },
       "6m": {
         "profitable": 1.0,
-        "beat_benchmark": 1.0,
-        "median": 0.3959413119123554,
-        "worst": 0.3807043544973041
+        "beat_benchmark": 0.0,
+        "median": 0.0820047680703232,
+        "worst": 0.08200355709772422
       },
       "9m": {
         "profitable": null,
@@ -132,18 +185,18 @@
       }
     },
     "9m": {
-      "total_return": 1.966551931401947,
-      "cagr": 3.2611384463034083,
-      "max_drawdown": -0.18599432632709523,
+      "total_return": 0.4614188450932617,
+      "cagr": 0.6582480315757422,
+      "max_drawdown": -0.18730120284788254,
       "benchmark_cagr": 0.17568952872824273,
       "benchmark_max_drawdown": -0.08884968175523733,
       "benchmark_total_return": 0.12909768198066152,
-      "inr_total_return": 2.1579386688648365,
-      "inr_cagr": 3.6314790244613713,
+      "inr_total_return": 0.555702104344012,
+      "inr_cagr": 0.8023683277082978,
       "benchmark_inr_cagr": 0.27787009509336547,
-      "sharpe": 2.903560386209593,
-      "win_rate": 0.6428571428571429,
-      "trades": 14,
+      "sharpe": 1.6248711468319088,
+      "win_rate": 0.5333333333333333,
+      "trades": 15,
       "forced_stale_exits": 0,
       "ending_positions": {
         "CRL": -0.01182978044369265,
@@ -153,16 +206,16 @@
         "MTD": -0.02315112958179666
       },
       "3m": {
-        "profitable": 0.9841269841269841,
-        "beat_benchmark": 0.9841269841269841,
-        "median": 0.49598724225325874,
-        "worst": -0.018477976570864807
+        "profitable": 0.9126984126984127,
+        "beat_benchmark": 0.7857142857142857,
+        "median": 0.11153490873106287,
+        "worst": -0.08017289639002811
       },
       "6m": {
         "profitable": 1.0,
-        "beat_benchmark": 1.0,
-        "median": 1.1945630090200625,
-        "worst": 0.736235373166019
+        "beat_benchmark": 0.9523809523809523,
+        "median": 0.2406818581953658,
+        "worst": 0.04062216073643099
       },
       "9m": {
         "profitable": null,
@@ -178,17 +231,17 @@
       }
     },
     "12m": {
-      "total_return": 1.2714453117828692,
-      "cagr": 1.2778538228264984,
-      "max_drawdown": -0.2886708928879478,
-      "benchmark_cagr": 0.20372608897982913,
+      "total_return": 0.873231371278848,
+      "cagr": 0.8772733689477978,
+      "max_drawdown": -0.16113335148283214,
+      "benchmark_cagr": 0.20372597256212455,
       "benchmark_max_drawdown": -0.08884968175523733,
-      "benchmark_total_return": 0.2029624809028201,
-      "inr_total_return": 1.4551288784426326,
-      "inr_cagr": 1.4627131851473347,
-      "benchmark_inr_cagr": 0.3014145512454405,
-      "sharpe": 2.024013544121905,
-      "win_rate": 0.6842105263157895,
+      "benchmark_total_return": 0.2029623649571326,
+      "inr_total_return": 1.0247128168899629,
+      "inr_cagr": 1.029623600735262,
+      "benchmark_inr_cagr": 0.3014144253798503,
+      "sharpe": 2.111072808087353,
+      "win_rate": 0.5263157894736842,
       "trades": 19,
       "forced_stale_exits": 0,
       "ending_positions": {
@@ -199,22 +252,22 @@
         "MTB": -0.08368548587951907
       },
       "3m": {
-        "profitable": 0.9894179894179894,
-        "beat_benchmark": 0.9259259259259259,
-        "median": 0.22122721050943484,
-        "worst": -0.022558532818259813
+        "profitable": 0.9629629629629629,
+        "beat_benchmark": 0.8359788359788359,
+        "median": 0.1402236653193092,
+        "worst": -0.04795103503252651
       },
       "6m": {
         "profitable": 1.0,
-        "beat_benchmark": 1.0,
-        "median": 0.4199817143353387,
-        "worst": 0.0717793071822983
+        "beat_benchmark": 0.8253968253968254,
+        "median": 0.33675017580229305,
+        "worst": 0.011129032723371068
       },
       "9m": {
         "profitable": 1.0,
         "beat_benchmark": 1.0,
-        "median": 0.8566748056826279,
-        "worst": 0.49213442498677407
+        "median": 0.5624021402717385,
+        "worst": 0.3776238176224225
       },
       "12m": {
         "profitable": null,
@@ -224,141 +277,473 @@
       }
     },
     "3y": {
-      "total_return": 2.48392090466263,
-      "cagr": 0.5158220254618386,
-      "max_drawdown": -0.24139451851284333,
-      "benchmark_cagr": 0.20559892798127177,
-      "benchmark_max_drawdown": -0.18755231324828703,
-      "benchmark_total_return": 0.7525246681704216,
-      "inr_total_return": 2.988285227643281,
-      "inr_cagr": 0.5856830714844288,
-      "benchmark_inr_cagr": 0.26116244452723514,
-      "sharpe": 1.468926223589329,
-      "win_rate": 0.7192982456140351,
-      "trades": 57,
+      "total_return": 1.3315424022174756,
+      "cagr": 0.32592762585695256,
+      "max_drawdown": -0.23383285022500333,
+      "benchmark_cagr": 0.20559889977360757,
+      "benchmark_max_drawdown": -0.18755234489427308,
+      "benchmark_total_return": 0.7525245451297393,
+      "inr_total_return": 1.6690778507465436,
+      "inr_cagr": 0.38703683877025186,
+      "benchmark_inr_cagr": 0.2611624150195391,
+      "sharpe": 1.1096852553432257,
+      "win_rate": 0.6428571428571429,
+      "trades": 56,
       "forced_stale_exits": 0,
       "ending_positions": {
         "HUM": -0.01358913454705346,
         "PANW": 0.020776936997702444,
         "CRWD": 0.05904079862643852,
         "FTNT": 0.007532412341039629,
-        "CNC": -0.02130529837113293
+        "DDOG": -0.13438261530656193
       },
       "3m": {
-        "profitable": 0.7793904208998549,
-        "beat_benchmark": 0.49782293178519593,
-        "median": 0.0679929940139663,
-        "worst": -0.16002185611573472
+        "profitable": 0.6923076923076923,
+        "beat_benchmark": 0.43686502177068215,
+        "median": 0.04092059072459353,
+        "worst": -0.15062187711487196
       },
       "6m": {
-        "profitable": 0.8067092651757188,
-        "beat_benchmark": 0.5223642172523961,
-        "median": 0.13588005507555823,
-        "worst": -0.16564063671401652
+        "profitable": 0.7747603833865815,
+        "beat_benchmark": 0.38338658146964855,
+        "median": 0.1039969565604899,
+        "worst": -0.17226292908249452
       },
       "9m": {
-        "profitable": 0.9023090586145648,
-        "beat_benchmark": 0.5683836589698046,
-        "median": 0.19285058453410064,
-        "worst": -0.07657801575982592
+        "profitable": 0.7904085257548845,
+        "beat_benchmark": 0.4227353463587922,
+        "median": 0.13901617777498165,
+        "worst": -0.11748601166923689
       },
       "12m": {
-        "profitable": 0.994,
-        "beat_benchmark": 0.554,
-        "median": 0.2753498592718836,
-        "worst": -0.030929360252269
+        "profitable": 0.818,
+        "beat_benchmark": 0.428,
+        "median": 0.16396289965107602,
+        "worst": -0.11246871946736481
       }
     },
     "5y": {
-      "total_return": 0.21805328601415153,
-      "cagr": 0.040244919221870123,
-      "max_drawdown": -0.35853551448326915,
-      "benchmark_cagr": 0.1252672211721506,
-      "benchmark_max_drawdown": -0.24496400650373296,
-      "benchmark_total_return": 0.8040279344551664,
-      "inr_total_return": 0.5873707259686667,
-      "inr_cagr": 0.09683466677829866,
-      "benchmark_inr_cagr": 0.1864822166054272,
-      "sharpe": 0.2761366798189629,
-      "win_rate": 0.5102040816326531,
+      "total_return": 0.050936130463481,
+      "cagr": 0.009987166508850454,
+      "max_drawdown": -0.33210794408402,
+      "benchmark_cagr": 0.1252672537062578,
+      "benchmark_max_drawdown": -0.24496393860941024,
+      "benchmark_total_return": 0.8040281952128152,
+      "inr_total_return": 0.36958314345956755,
+      "inr_cagr": 0.06493087998617453,
+      "benchmark_inr_cagr": 0.18648225090940307,
+      "sharpe": 0.15384383688702793,
+      "win_rate": 0.5204081632653061,
       "trades": 98,
       "forced_stale_exits": 0,
       "ending_positions": {
-        "SNDK": 1.1733294803894303,
         "HUM": 0.05820666046306089,
         "NUE": -0.0646714836858997,
         "STX": -0.20851676775725725,
-        "AMD": -0.1421185527735651
+        "STLD": -0.1854289743882357,
+        "INTC": -0.31291993631585746
       },
       "3m": {
-        "profitable": 0.50251677852349,
-        "beat_benchmark": 0.40604026845637586,
-        "median": 0.0009744765367594166,
-        "worst": -0.2616414890348193
+        "profitable": 0.4966442953020134,
+        "beat_benchmark": 0.39177852348993286,
+        "median": -0.0008495494019025163,
+        "worst": -0.26166343069010467
       },
       "6m": {
-        "profitable": 0.5217006200177148,
-        "beat_benchmark": 0.3259521700620018,
-        "median": 0.004593773466282869,
-        "worst": -0.28204939116959815
+        "profitable": 0.4977856510186005,
+        "beat_benchmark": 0.2754650132860939,
+        "median": -0.00018242245804711565,
+        "worst": -0.2820621495304144
       },
       "9m": {
-        "profitable": 0.44934333958724204,
-        "beat_benchmark": 0.349906191369606,
-        "median": -0.021020413409669036,
-        "worst": -0.26833449603300796
+        "profitable": 0.4530956848030019,
+        "beat_benchmark": 0.3677298311444653,
+        "median": -0.01554702219432813,
+        "worst": -0.2471185192887997
       },
       "12m": {
-        "profitable": 0.3918245264207378,
-        "beat_benchmark": 0.33998005982053836,
-        "median": -0.0435404850060056,
-        "worst": -0.26021844744218303
+        "profitable": 0.4187437686939183,
+        "beat_benchmark": 0.36191425722831505,
+        "median": -0.028183431038358853,
+        "worst": -0.2387613542217537
       }
     },
     "10y": {
-      "total_return": 1.5647990392068216,
-      "cagr": 0.09880882822127379,
-      "max_drawdown": -0.4759568485039687,
-      "benchmark_cagr": 0.15147462562452807,
+      "total_return": 1.210972569148483,
+      "cagr": 0.08261114220838994,
+      "max_drawdown": -0.555008804593657,
+      "benchmark_cagr": 0.1514746634231081,
       "benchmark_max_drawdown": -0.33717280807808137,
-      "benchmark_total_return": 3.095360744613192,
-      "inr_total_return": 2.681964840286992,
-      "inr_cagr": 0.13928196077514965,
-      "benchmark_inr_cagr": 0.19388763137983078,
-      "sharpe": 0.5437161060119488,
-      "win_rate": 0.616580310880829,
-      "trades": 193,
+      "benchmark_total_return": 3.0953620884141504,
+      "inr_total_return": 2.174019928267471,
+      "inr_cagr": 0.12248765497160896,
+      "benchmark_inr_cagr": 0.19388767057067002,
+      "sharpe": 0.46985754357139725,
+      "win_rate": 0.6197916666666666,
+      "trades": 192,
       "forced_stale_exits": 1,
       "ending_positions": {
         "HUM": 0.10392318999913064,
         "INTC": -0.3632719964138077,
         "STX": -0.2649504818645927,
-        "CNC": 0.03935635916919589,
-        "AMD": -0.155019962972476
+        "MRVL": -0.2772789839815377,
+        "MU": -0.24283569539763794
       },
       "3m": {
-        "profitable": 0.7055941200489996,
+        "profitable": 0.6868109432421396,
         "beat_benchmark": 0.5026541445487954,
-        "median": 0.04047746464424473,
-        "worst": -0.2934441779788981
+        "median": 0.03840192622092009,
+        "worst": -0.4000288078008304
       },
       "6m": {
-        "profitable": 0.7648784576697402,
-        "beat_benchmark": 0.5025146689019279,
-        "median": 0.0768273476617296,
-        "worst": -0.46901524020088714
+        "profitable": 0.7569153394803018,
+        "beat_benchmark": 0.4694048616932104,
+        "median": 0.07041000160088429,
+        "worst": -0.5491144710970519
       },
       "9m": {
-        "profitable": 0.7907877744296169,
-        "beat_benchmark": 0.5144210073181231,
-        "median": 0.11031290519810799,
-        "worst": -0.35426081059191716
+        "profitable": 0.782608695652174,
+        "beat_benchmark": 0.46190271201033145,
+        "median": 0.10270334160613581,
+        "worst": -0.42392029292342237
       },
       "12m": {
-        "profitable": 0.8389380530973451,
-        "beat_benchmark": 0.55,
-        "median": 0.14781811118639243,
-        "worst": -0.22625803298271574
+        "profitable": 0.8207964601769911,
+        "beat_benchmark": 0.4646017699115044,
+        "median": 0.13926513557720488,
+        "worst": -0.2733227934780471
+      }
+    }
+  },
+  "risk_reduction_experiment": {
+    "status": "diagnostic_only",
+    "target_vol": 0.07,
+    "max_exposure": 0.4,
+    "regime_ema_days": 200,
+    "review_sessions": 120,
+    "keep_rank": 15,
+    "timeline": {
+      "3m": {
+        "total_return": 0.02838220254546675,
+        "cagr": 0.11751894068785829,
+        "max_drawdown": -0.06475531528855238,
+        "benchmark_cagr": 0.027508276287227407,
+        "benchmark_max_drawdown": -0.04494652583696357,
+        "benchmark_total_return": 0.006858672937944954,
+        "inr_total_return": 0.023678981183810288,
+        "inr_cagr": 0.09736558476217394,
+        "benchmark_inr_cagr": 0.00897817424183689,
+        "sharpe": 0.3145937056965744,
+        "win_rate": null,
+        "trades": 0,
+        "forced_stale_exits": 0,
+        "ending_positions": {
+          "CRWD": 0.16916056067635798,
+          "PANW": 0.26857725407009747,
+          "HPE": 0.15479470605980716,
+          "STX": -0.07692916637783909,
+          "INTC": -0.18696882963916928
+        },
+        "3m": {
+          "profitable": 0.5,
+          "beat_benchmark": 0.5,
+          "median": 0.01121184482613985,
+          "worst": -0.0029702822419098718
+        },
+        "6m": {
+          "profitable": null,
+          "beat_benchmark": null,
+          "median": null,
+          "worst": null
+        },
+        "9m": {
+          "profitable": null,
+          "beat_benchmark": null,
+          "median": null,
+          "worst": null
+        },
+        "12m": {
+          "profitable": null,
+          "beat_benchmark": null,
+          "median": null,
+          "worst": null
+        }
+      },
+      "6m": {
+        "total_return": -0.04476488464946482,
+        "cagr": -0.08735459076796293,
+        "max_drawdown": -0.04527340205788888,
+        "benchmark_cagr": 0.24433875807350702,
+        "benchmark_max_drawdown": -0.07675651186050247,
+        "benchmark_total_return": 0.1157497217107788,
+        "inr_total_return": -0.002448187924420475,
+        "inr_cagr": -0.004880385443439161,
+        "benchmark_inr_cagr": 0.35678752425201044,
+        "sharpe": -2.7317776677129815,
+        "win_rate": 0.6,
+        "trades": 5,
+        "forced_stale_exits": 0,
+        "ending_positions": {
+          "CRL": -0.03235315128144434,
+          "LH": -0.013128555708652678,
+          "EXPE": -0.07240503550530941,
+          "WTW": -0.025010893098890485,
+          "TMO": -0.041469769631443
+        },
+        "3m": {
+          "profitable": 0.07692307692307693,
+          "beat_benchmark": 0.0,
+          "median": 0.0,
+          "worst": -0.030831734265685085
+        },
+        "6m": {
+          "profitable": 0.0,
+          "beat_benchmark": 0.0,
+          "median": -0.03648310691843598,
+          "worst": -0.03653199513988492
+        },
+        "9m": {
+          "profitable": null,
+          "beat_benchmark": null,
+          "median": null,
+          "worst": null
+        },
+        "12m": {
+          "profitable": null,
+          "beat_benchmark": null,
+          "median": null,
+          "worst": null
+        }
+      },
+      "9m": {
+        "total_return": 0.17011831850807413,
+        "cagr": 0.2329693669476165,
+        "max_drawdown": -0.04752644746001644,
+        "benchmark_cagr": 0.17568952872824273,
+        "benchmark_max_drawdown": -0.08884968175523733,
+        "benchmark_total_return": 0.12909768198066152,
+        "inr_total_return": 0.2456083596748202,
+        "inr_cagr": 0.34012819174537934,
+        "benchmark_inr_cagr": 0.27787009509336547,
+        "sharpe": 1.614366385592402,
+        "win_rate": 1.0,
+        "trades": 5,
+        "forced_stale_exits": 0,
+        "ending_positions": {
+          "INTC": -0.2713349522313042,
+          "CRWD": 0.293654179393797,
+          "PANW": 0.4025253805831521,
+          "HPE": 0.34543330729384936,
+          "VRSN": -0.067404485300945
+        },
+        "3m": {
+          "profitable": 0.8650793650793651,
+          "beat_benchmark": 0.4126984126984127,
+          "median": 0.036687293684508515,
+          "worst": -0.021235044088730115
+        },
+        "6m": {
+          "profitable": 1.0,
+          "beat_benchmark": 0.38095238095238093,
+          "median": 0.08066769307012134,
+          "worst": 0.009464932199620524
+        },
+        "9m": {
+          "profitable": null,
+          "beat_benchmark": null,
+          "median": null,
+          "worst": null
+        },
+        "12m": {
+          "profitable": null,
+          "beat_benchmark": null,
+          "median": null,
+          "worst": null
+        }
+      },
+      "12m": {
+        "total_return": 0.22489208681349027,
+        "cagr": 0.2257456558032762,
+        "max_drawdown": -0.07407696446013579,
+        "benchmark_cagr": 0.20372597256212455,
+        "benchmark_max_drawdown": -0.08884968175523733,
+        "benchmark_total_return": 0.2029623649571326,
+        "inr_total_return": 0.3239446795006655,
+        "inr_cagr": 0.3252211173226469,
+        "benchmark_inr_cagr": 0.3014144253798503,
+        "sharpe": 1.6919090189585808,
+        "win_rate": 0.8,
+        "trades": 10,
+        "forced_stale_exits": 0,
+        "ending_positions": {
+          "BAC": -0.03742235699239327,
+          "CRL": 0.010233237580996146,
+          "EXPE": -0.07815855943162808,
+          "TECH": 0.0005529400515280614,
+          "MTB": -0.08368548587951907
+        },
+        "3m": {
+          "profitable": 0.5502645502645502,
+          "beat_benchmark": 0.49206349206349204,
+          "median": 0.007505381052993476,
+          "worst": -0.05973738982704235
+        },
+        "6m": {
+          "profitable": 0.7698412698412699,
+          "beat_benchmark": 0.3968253968253968,
+          "median": 0.08337213702414825,
+          "worst": -0.060226976827260414
+        },
+        "9m": {
+          "profitable": 1.0,
+          "beat_benchmark": 0.6666666666666666,
+          "median": 0.15377680309927566,
+          "worst": 0.06734383115206533
+        },
+        "12m": {
+          "profitable": null,
+          "beat_benchmark": null,
+          "median": null,
+          "worst": null
+        }
+      },
+      "3y": {
+        "total_return": 0.2444187049272475,
+        "cagr": 0.0755937981817747,
+        "max_drawdown": -0.09635716435655839,
+        "benchmark_cagr": 0.20559889977360757,
+        "benchmark_max_drawdown": -0.18755234489427308,
+        "benchmark_total_return": 0.7525245451297393,
+        "inr_total_return": 0.42457216270956977,
+        "inr_cagr": 0.1251656519840012,
+        "benchmark_inr_cagr": 0.2611624150195391,
+        "sharpe": 0.7895600587804597,
+        "win_rate": 0.5714285714285714,
+        "trades": 28,
+        "forced_stale_exits": 0,
+        "ending_positions": {
+          "HUM": -0.01358913454705346,
+          "PANW": 0.020776936997702444,
+          "CRWD": 0.05904079862643852,
+          "FTNT": 0.007532412341039629,
+          "DDOG": -0.13438261530656193
+        },
+        "3m": {
+          "profitable": 0.5065312046444121,
+          "beat_benchmark": 0.2830188679245283,
+          "median": 0.00039759751363344087,
+          "worst": -0.07482249886248593
+        },
+        "6m": {
+          "profitable": 0.6277955271565495,
+          "beat_benchmark": 0.25559105431309903,
+          "median": 0.017603302276989474,
+          "worst": -0.08908412112720598
+        },
+        "9m": {
+          "profitable": 0.7175843694493783,
+          "beat_benchmark": 0.24156305506216696,
+          "median": 0.036494305032618746,
+          "worst": -0.08908412112720598
+        },
+        "12m": {
+          "profitable": 0.664,
+          "beat_benchmark": 0.292,
+          "median": 0.03458926272725582,
+          "worst": -0.08118194792448741
+        }
+      },
+      "5y": {
+        "total_return": 0.10310977187813841,
+        "cagr": 0.019823260652961583,
+        "max_drawdown": -0.12082124467462363,
+        "benchmark_cagr": 0.1252672537062578,
+        "benchmark_max_drawdown": -0.24496393860941024,
+        "benchmark_total_return": 0.8040281952128152,
+        "inr_total_return": 0.4375759907346015,
+        "inr_cagr": 0.07530206166041542,
+        "benchmark_inr_cagr": 0.18648225090940307,
+        "sharpe": 0.2921371860421322,
+        "win_rate": 0.6136363636363636,
+        "trades": 44,
+        "forced_stale_exits": 0,
+        "ending_positions": {
+          "HUM": -0.009481760759979974,
+          "PANW": 0.06975296793084818,
+          "FTNT": -0.015750403183151906,
+          "CRWD": 0.09394710400455497,
+          "DDOG": -0.1722199870327662
+        },
+        "3m": {
+          "profitable": 0.3808724832214765,
+          "beat_benchmark": 0.33053691275167785,
+          "median": 0.0,
+          "worst": -0.07795911744578077
+        },
+        "6m": {
+          "profitable": 0.46147032772364927,
+          "beat_benchmark": 0.2657218777679362,
+          "median": 0.0,
+          "worst": -0.09610304632866029
+        },
+        "9m": {
+          "profitable": 0.49906191369606,
+          "beat_benchmark": 0.2682926829268293,
+          "median": 0.0,
+          "worst": -0.08107045326690487
+        },
+        "12m": {
+          "profitable": 0.5672981056829511,
+          "beat_benchmark": 0.23728813559322035,
+          "median": 0.009712807778232246,
+          "worst": -0.08107045326690487
+        }
+      },
+      "10y": {
+        "total_return": 0.6821425297925863,
+        "cagr": 0.0534054443782257,
+        "max_drawdown": -0.1046929847950705,
+        "benchmark_cagr": 0.1514746634231081,
+        "benchmark_max_drawdown": -0.33717280807808137,
+        "benchmark_total_return": 3.0953620884141504,
+        "inr_total_return": 1.4148440311967363,
+        "inr_cagr": 0.09220620488204356,
+        "benchmark_inr_cagr": 0.19388767057067002,
+        "sharpe": 0.8673847920188372,
+        "win_rate": 0.6292134831460674,
+        "trades": 89,
+        "forced_stale_exits": 2,
+        "ending_positions": {
+          "GLW": 0.6876941549333873,
+          "LITE": -0.023102853055614103,
+          "GEV": -0.10657687343645594,
+          "TRGP": 0.278338394031733,
+          "EQIX": -0.05083644521693986
+        },
+        "3m": {
+          "profitable": 0.5700285830951409,
+          "beat_benchmark": 0.2743977133523887,
+          "median": 0.0021630238689294146,
+          "worst": -0.08584893103619162
+        },
+        "6m": {
+          "profitable": 0.7053646269907795,
+          "beat_benchmark": 0.2338642078792959,
+          "median": 0.012566031303023584,
+          "worst": -0.09537338867741385
+        },
+        "9m": {
+          "profitable": 0.7356866121394748,
+          "beat_benchmark": 0.20232458028411537,
+          "median": 0.018121480825380898,
+          "worst": -0.09537338867741385
+        },
+        "12m": {
+          "profitable": 0.7522123893805309,
+          "beat_benchmark": 0.14424778761061946,
+          "median": 0.0307937942741896,
+          "worst": -0.09537338867741385
+        }
       }
     }
   },
@@ -366,186 +751,188 @@
     "status": "rejected",
     "limit": 0.75,
     "development": {
-      "total_return": 1.2775712621712145,
-      "cagr": 0.17908024671086165,
-      "max_drawdown": -0.22072212141612602,
-      "benchmark_cagr": 0.178307263486446,
+      "total_return": 1.1474490268713504,
+      "cagr": 0.1652793267048338,
+      "max_drawdown": -0.23485308030191054,
+      "benchmark_cagr": 0.17830730678014284,
       "benchmark_max_drawdown": -0.33717280807808137,
-      "benchmark_total_return": 1.2701204711943834,
-      "inr_total_return": 1.5089163976174524,
-      "inr_cagr": 0.2021314579467024,
-      "benchmark_inr_cagr": 0.20134336277410725,
-      "sharpe": 1.0367055258379543,
-      "win_rate": 0.7096774193548387,
-      "trades": 93,
+      "benchmark_total_return": 1.2701208879559855,
+      "inr_total_return": 1.3655769485908413,
+      "inr_cagr": 0.1880607277024018,
+      "benchmark_inr_cagr": 0.20134340691420305,
+      "sharpe": 0.9794046174629235,
+      "win_rate": 0.7065217391304348,
+      "trades": 92,
       "forced_stale_exits": 1,
       "ending_positions": {
         "IQV": 0.07533014979905972,
-        "DPZ": 0.14816558627522736,
-        "NDAQ": 0.11157266377277342,
-        "PSA": 0.12841810923507735,
-        "WM": 0.11616403571968936
+        "DPZ": 0.14816534901108036,
+        "NDAQ": 0.11157260193207286,
+        "PSA": 0.12841839923762466,
+        "WM": 0.11616390351504324
       },
       "3m": {
-        "profitable": 0.792468619246862,
-        "beat_benchmark": 0.4887029288702929,
-        "median": 0.04945256618912319,
-        "worst": -0.1810413807360297
+        "profitable": 0.7715481171548118,
+        "beat_benchmark": 0.48368200836820086,
+        "median": 0.04989554145101893,
+        "worst": -0.20777945592554115
       },
       "6m": {
-        "profitable": 0.8330388692579506,
-        "beat_benchmark": 0.5265017667844523,
-        "median": 0.09506727376327184,
-        "worst": -0.14150060437394585
+        "profitable": 0.8162544169611308,
+        "beat_benchmark": 0.4911660777385159,
+        "median": 0.08967109381367733,
+        "worst": -0.1695399455068548
       },
       "9m": {
-        "profitable": 0.8512628624883068,
-        "beat_benchmark": 0.5799812909260992,
-        "median": 0.1418031276540319,
-        "worst": -0.10257070238864852
+        "profitable": 0.8185219831618334,
+        "beat_benchmark": 0.5051449953227315,
+        "median": 0.126173563027018,
+        "worst": -0.12911635660548437
       },
       "12m": {
-        "profitable": 0.9075546719681908,
-        "beat_benchmark": 0.6192842942345924,
-        "median": 0.18099911968411142,
-        "worst": -0.08256579759996863
+        "profitable": 0.8538767395626242,
+        "beat_benchmark": 0.5059642147117296,
+        "median": 0.15667079044356347,
+        "worst": -0.13553462393236737
       }
     },
     "holdout": {
-      "total_return": 0.09171695216988796,
-      "cagr": 0.01771747409983404,
-      "max_drawdown": -0.3451407538174527,
-      "benchmark_cagr": 0.12464838930634592,
-      "benchmark_max_drawdown": -0.24496400650373296,
-      "benchmark_total_return": 0.7984949911692787,
-      "inr_total_return": 0.42138119417435593,
-      "inr_cagr": 0.0729093555903031,
-      "benchmark_inr_cagr": 0.18563924600352943,
-      "sharpe": 0.19606145976125022,
-      "win_rate": 0.5,
-      "trades": 98,
+      "total_return": -0.1562000947946508,
+      "cagr": -0.03342003208863098,
+      "max_drawdown": -0.3834273723215238,
+      "benchmark_cagr": 0.1246483730892225,
+      "benchmark_max_drawdown": -0.24496393860941024,
+      "benchmark_total_return": 0.798494861588998,
+      "inr_total_return": 0.09860098308553944,
+      "inr_cagr": 0.018998609034939218,
+      "benchmark_inr_cagr": 0.18563922890693463,
+      "sharpe": -0.042281886993794884,
+      "win_rate": 0.5050505050505051,
+      "trades": 99,
       "forced_stale_exits": 0,
       "ending_positions": {
-        "SNDK": 0.9889607491107564,
         "HUM": 0.04035025633361755,
         "STX": -0.21724252253041387,
-        "AMD": -0.1595933861637281
+        "NUE": -0.03460105144684911,
+        "INTC": -0.2888657918099172,
+        "STT": 0.11631799940099041
       },
       "3m": {
-        "profitable": 0.5247691015952981,
-        "beat_benchmark": 0.40890008396305627,
-        "median": 0.008426266449049313,
-        "worst": -0.23817124896414488
+        "profitable": 0.46767422334172964,
+        "beat_benchmark": 0.382031905961377,
+        "median": -0.010151477943973086,
+        "worst": -0.23814408487576044
       },
       "6m": {
-        "profitable": 0.5345744680851063,
-        "beat_benchmark": 0.3475177304964539,
-        "median": 0.008567416715503762,
-        "worst": -0.28138243314818945
+        "profitable": 0.5035460992907801,
+        "beat_benchmark": 0.30230496453900707,
+        "median": 0.0012675676360133226,
+        "worst": -0.2851215812502409
       },
       "9m": {
-        "profitable": 0.48169014084507045,
-        "beat_benchmark": 0.355868544600939,
-        "median": -0.007309971122287262,
-        "worst": -0.2227908435046877
+        "profitable": 0.4835680751173709,
+        "beat_benchmark": 0.28544600938967135,
+        "median": -0.006619707102353933,
+        "worst": -0.23283599420166812
       },
       "12m": {
-        "profitable": 0.47005988023952094,
-        "beat_benchmark": 0.3582834331337325,
-        "median": -0.009509900686185901,
-        "worst": -0.2175036320396162
+        "profitable": 0.48403193612774453,
+        "beat_benchmark": 0.26147704590818366,
+        "median": -0.004760502645486664,
+        "worst": -0.27803100418444493
       }
     }
   },
   "development": {
-    "total_return": 1.3315801721964227,
-    "cagr": 0.18462374556451522,
-    "max_drawdown": -0.2207334803646076,
-    "benchmark_cagr": 0.178307263486446,
+    "total_return": 1.2001437651200302,
+    "cagr": 0.17094668955985814,
+    "max_drawdown": -0.23488041479069288,
+    "benchmark_cagr": 0.17830730678014284,
     "benchmark_max_drawdown": -0.33717280807808137,
-    "benchmark_total_return": 1.2701204711943834,
-    "inr_total_return": 1.568411282467077,
-    "inr_cagr": 0.20778333310758157,
-    "benchmark_inr_cagr": 0.20134336277410725,
-    "sharpe": 1.0488230047589748,
-    "win_rate": 0.7204301075268817,
-    "trades": 93,
+    "benchmark_total_return": 1.2701208879559855,
+    "inr_total_return": 1.4236241741842308,
+    "inr_cagr": 0.19383888842609176,
+    "benchmark_inr_cagr": 0.20134340691420305,
+    "sharpe": 0.993390589946451,
+    "win_rate": 0.717391304347826,
+    "trades": 92,
     "forced_stale_exits": 1,
     "ending_positions": {
       "IQV": 0.07533014979905972,
-      "DPZ": 0.14816558627522736,
-      "NDAQ": 0.11157266377277342,
-      "PSA": 0.12841810923507735,
-      "WM": 0.11616403571968936
+      "DPZ": 0.14816534901108036,
+      "NDAQ": 0.11157260193207286,
+      "PSA": 0.12841839923762466,
+      "WM": 0.11616390351504324
     },
     "3m": {
-      "profitable": 0.798326359832636,
-      "beat_benchmark": 0.499581589958159,
-      "median": 0.0506109905647143,
-      "worst": -0.18105351428219563
+      "profitable": 0.7799163179916317,
+      "beat_benchmark": 0.500418410041841,
+      "median": 0.050784321325120896,
+      "worst": -0.2078034252334776
     },
     "6m": {
-      "profitable": 0.8277385159010601,
-      "beat_benchmark": 0.5468197879858657,
-      "median": 0.09481802138368733,
-      "worst": -0.14151647415364577
+      "profitable": 0.8136042402826855,
+      "beat_benchmark": 0.508833922261484,
+      "median": 0.08904196981291357,
+      "worst": -0.17582657717809203
     },
     "9m": {
-      "profitable": 0.8475210477081384,
-      "beat_benchmark": 0.5743685687558466,
-      "median": 0.14208648397980528,
-      "worst": -0.10256744281866104
+      "profitable": 0.8157156220767072,
+      "beat_benchmark": 0.5135640785781104,
+      "median": 0.12924137518841472,
+      "worst": -0.12912257989548181
     },
     "12m": {
-      "profitable": 0.911530815109344,
-      "beat_benchmark": 0.6003976143141153,
-      "median": 0.17442320571063918,
-      "worst": -0.0886690623160783
+      "profitable": 0.856858846918489,
+      "beat_benchmark": 0.49105367793240556,
+      "median": 0.15391818490352793,
+      "worst": -0.14128316359442272
     }
   },
   "holdout": {
-    "total_return": 0.117344882818877,
-    "cagr": 0.02245463934976666,
-    "max_drawdown": -0.35354174168234687,
-    "benchmark_cagr": 0.12464838930634592,
-    "benchmark_max_drawdown": -0.24496400650373296,
-    "benchmark_total_return": 0.7984949911692787,
-    "inr_total_return": 0.45474795521775246,
-    "inr_cagr": 0.0779034222590762,
-    "benchmark_inr_cagr": 0.18563924600352943,
-    "sharpe": 0.2146933646319466,
-    "win_rate": 0.5051546391752577,
-    "trades": 97,
+    "total_return": -0.05596120244531688,
+    "cagr": -0.011459327640164108,
+    "max_drawdown": -0.35093182593940353,
+    "benchmark_cagr": 0.1246483730892225,
+    "benchmark_max_drawdown": -0.24496393860941024,
+    "benchmark_total_return": 0.798494861588998,
+    "inr_total_return": 0.22910887363997623,
+    "inr_cagr": 0.04215026542067046,
+    "benchmark_inr_cagr": 0.18563922890693463,
+    "sharpe": 0.057080610880894875,
+    "win_rate": 0.5204081632653061,
+    "trades": 98,
     "forced_stale_exits": 0,
     "ending_positions": {
-      "SNDK": 0.9889607491107564,
       "HUM": 0.04035025633361755,
       "STX": -0.21724252253041387,
-      "AMD": -0.1595933861637281
+      "NUE": -0.03460105144684911,
+      "INTC": -0.2888657918099172,
+      "STT": 0.11631799940099041
     },
     "3m": {
-      "profitable": 0.49706129303106633,
-      "beat_benchmark": 0.40134340890008396,
-      "median": -0.0011932234406912823,
-      "worst": -0.2381610028754828
+      "profitable": 0.45843828715365237,
+      "beat_benchmark": 0.3929471032745592,
+      "median": -0.011733972324996733,
+      "worst": -0.23818464500372083
     },
     "6m": {
-      "profitable": 0.5301418439716312,
-      "beat_benchmark": 0.3484042553191489,
-      "median": 0.006158196385536274,
-      "worst": -0.28141978241329557
+      "profitable": 0.5150709219858156,
+      "beat_benchmark": 0.30939716312056736,
+      "median": 0.004670980276921255,
+      "worst": -0.2851906660493737
     },
     "9m": {
-      "profitable": 0.47136150234741786,
-      "beat_benchmark": 0.37652582159624415,
-      "median": -0.010044994056608525,
-      "worst": -0.2228700323575451
+      "profitable": 0.49107981220657276,
+      "beat_benchmark": 0.32582159624413143,
+      "median": -0.0018436760007466413,
+      "worst": -0.2095189748966697
     },
     "12m": {
-      "profitable": 0.4560878243512974,
-      "beat_benchmark": 0.37025948103792417,
-      "median": -0.012729761839465503,
-      "worst": -0.22961377316665843
+      "profitable": 0.4820359281437126,
+      "beat_benchmark": 0.3502994011976048,
+      "median": -0.005730265483869235,
+      "worst": -0.23993015951229169
     }
   }
 }
