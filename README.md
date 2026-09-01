@@ -10,7 +10,7 @@ The latest point-in-time factor search failed its blind five-year holdout and wa
 
 ## Automated paper trading on GitHub
 
-GitHub Actions monitors the paper portfolio every 30 minutes during NSE hours. Every 60 market sessions it ranks the current Nifty 50 by 63-session risk-adjusted momentum, holds five stocks, and retains existing holdings while they remain in the top ten. A robust price/volume/range anomaly veto remains active for new selections. Results are simulated and saved in `runtime/`; the public summary is deployed through GitHub Pages.
+GitHub Actions requests a paper-portfolio check about every 15 minutes during NSE hours, using off-peak cron minutes to reduce scheduler congestion. GitHub may still delay or drop scheduled jobs. Every 60 market sessions the strategy ranks the current Nifty 50 by 63-session risk-adjusted momentum, holds five stocks, and retains existing holdings while they remain in the top ten. A robust price/volume/range anomaly veto remains active for new selections, and stale quotes cannot trigger orders. Results are simulated and saved in `runtime/`; the public summary shows the last successful scan, latest data timestamp, and a browser-side missed-scan warning.
 
 Yahoo-adjusted OHLC data is used for total-return research. The forward paper ledger separately credits cash dividends, adjusts quantities and cost basis for reported splits/bonus-style ratios, deduplicates events, and reinvests available cash toward equal portfolio weights at the next 60-session review. Corporate-action data remains a convenience feed and should be reconciled against official company/exchange notices before any future live use.
 

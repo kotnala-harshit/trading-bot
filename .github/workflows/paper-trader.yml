@@ -2,9 +2,9 @@ name: NSE paper trader
 
 on:
   schedule:
-    - cron: "45 3 * * 1-5"
-    - cron: "0,30 4-9 * * 1-5"
-    - cron: "0 10 * * 1-5"
+    # Off-peak minutes reduce GitHub scheduler delays and dropped jobs.
+    - cron: "52 3 * * 1-5"
+    - cron: "7,22,37,52 4-9 * * 1-5"
   workflow_dispatch:
     inputs:
       force:
@@ -20,7 +20,7 @@ permissions:
 
 concurrency:
   group: nse-paper-trader
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   paper-trade:

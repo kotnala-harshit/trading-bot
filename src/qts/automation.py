@@ -60,6 +60,10 @@ def drawdown_stop_triggered(drawdown: float, has_positions: bool) -> bool:
     return has_positions and drawdown <= MAX_DRAWDOWN
 
 
+def quote_is_current(latest_timestamp, india_day: str) -> bool:
+    return latest_timestamp.tz_convert(ZoneInfo("Asia/Kolkata")).date().isoformat() == india_day
+
+
 def trading_enabled() -> bool:
     return bool(json.loads(CONTROL_PATH.read_text()).get("enabled", False))
 
@@ -91,22 +95,37 @@ def render_page(state: dict, quotes: dict[str, float]) -> None:
             f"<td>₹{value:,.2f}</td><td>₹{pnl:,.2f}</td></tr>"
         )
     rows = "".join(positions) or "<tr><td colspan='6'>No open paper positions</td></tr>"
+    successful_scan = state.get("last_successful_scan") or "Not completed yet"
+    last_attempt = state.get("last_attempt") or state.get("last_run") or "Not run yet"
     page = f"""<!doctype html><html><head><meta charset='utf-8'>
 <meta name='viewport' content='width=device-width,initial-scale=1'>
 <title>Indian Equity Paper Trader</title><style>
 body{{font:16px system-ui;max-width:1000px;margin:40px auto;padding:0 18px;color:#18202a}}
 .cards{{display:flex;gap:14px;flex-wrap:wrap}}.card{{padding:18px;background:#f2f6fa;border-radius:12px;min-width:180px}}
 table{{border-collapse:collapse;width:100%;margin-top:22px}}th,td{{padding:10px;border-bottom:1px solid #ddd;text-align:right}}th:first-child,td:first-child{{text-align:left}}
-.safe{{color:#087f5b}}.warning{{background:#fff3bf;padding:12px;border-radius:8px}}</style></head><body>
+.safe{{color:#087f5b}}.warning{{background:#fff3bf;padding:12px;border-radius:8px}}
+.stale{{background:#ffe3e3;color:#c92a2a;padding:12px;border-radius:8px}}</style></head><body>
 <h1>Indian Equity Paper Trader</h1>
 <p class='safe'><strong>PAPER ONLY · REAL ORDERS DISABLED</strong></p>
 <div class='cards'><div class='card'>Equity<br><strong>₹{state['last_equity']:,.2f}</strong></div>
 <div class='card'>Cash<br><strong>₹{state['cash']:,.2f}</strong></div>
 <div class='card'>Positions<br><strong>{len(state['positions'])}/{MAX_POSITIONS}</strong></div>
 <div class='card'>Dividends<br><strong>₹{state.get('dividends_received', 0):,.2f}</strong></div></div>
-<p><strong>Status:</strong> {html.escape(state['status'])}<br><strong>Last run:</strong> {state['last_run'] or 'Not run yet'}</p>
+<p><strong>Status:</strong> {html.escape(state['status'])}<br>
+<strong>Last successful market scan:</strong> {successful_scan}<br>
+<strong>Last workflow attempt:</strong> {last_attempt}<br>
+<strong>Latest market data:</strong> {state.get('latest_data_at') or 'Not available'}</p>
+<p id='schedule-health' data-scan='{successful_scan}'>Checking schedule health…</p>
 <table><thead><tr><th>Symbol</th><th>Shares</th><th>Entry</th><th>Latest</th><th>Value</th><th>Open P/L</th></tr></thead><tbody>{rows}</tbody></table>
 <p class='warning'>Delayed public data and GitHub schedules are not exchange-grade. Results include estimated costs but not taxes, gaps, or guaranteed fills.</p>
+<script>
+const health=document.getElementById('schedule-health'), scan=Date.parse(health.dataset.scan);
+const india=new Date(Date.now()+330*60000), minutes=india.getUTCHours()*60+india.getUTCMinutes();
+const market=india.getUTCDay()>0&&india.getUTCDay()<6&&minutes>=555&&minutes<=930;
+const stale=!Number.isFinite(scan)||(Date.now()-scan)>60*60*1000;
+health.textContent=market&&stale?'Warning: no successful market scan in the last hour.':'Schedule health: recent scan or market closed.';
+health.className=market&&stale?'stale':'safe';
+</script>
 </body></html>"""
     PAGE_PATH.parent.mkdir(parents=True, exist_ok=True)
     PAGE_PATH.write_text(page)
@@ -115,6 +134,7 @@ table{{border-collapse:collapse;width:100%;margin-top:22px}}th,td{{padding:10px;
 def run(force: bool = False) -> dict:
     state = load_state()
     now = datetime.now(UTC)
+    state["last_attempt"] = now.isoformat()
     if not trading_enabled():
         state["status"] = "Disabled from GitHub control file; no paper orders"
         state["last_run"] = now.isoformat()
@@ -137,20 +157,30 @@ def run(force: bool = False) -> dict:
     review_due = not state["positions"] or state["sessions_since_review"] >= REVIEW_SESSIONS
     watchlist = json.loads(WATCHLIST_PATH.read_text())
     scan_symbols = watchlist if review_due else list(state["positions"])
-    candidates, quotes = [], {}
+    candidates, quotes, latest_data_at = [], {}, None
     for symbol in scan_symbols:
         try:
             frame = yahoo_chart(symbol, period="5y", interval="1d").frame
+            if not quote_is_current(frame.timestamp.iloc[-1], india_day):
+                continue
             price = float(frame.close.iloc[-1])
             quotes[symbol] = price
+            timestamp = frame.timestamp.iloc[-1]
+            latest_data_at = timestamp if latest_data_at is None else max(latest_data_at, timestamp)
             score = risk_adjusted_momentum_score(frame)
             if score is not None:
                 candidates.append((score, symbol, price))
         except (OSError, ValueError, TypeError, KeyError, IndexError, requests.RequestException):
             continue
 
-    if review_due and len(candidates) < 40:
-        state["status"] = f"Skipped review: only {len(candidates)}/50 valid Nifty quotes"
+    state["latest_data_at"] = latest_data_at.isoformat() if latest_data_at is not None else None
+    insufficient_review = review_due and len(candidates) < 40
+    insufficient_monitoring = not review_due and len(quotes) < len(scan_symbols)
+    if insufficient_review or insufficient_monitoring:
+        if review_due:
+            state["status"] = f"Skipped review: only {len(candidates)}/50 valid Nifty quotes"
+        else:
+            state["status"] = f"Skipped monitoring: only {len(quotes)}/{len(scan_symbols)} current quotes"
         state["last_run"] = now.isoformat()
         STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
         STATE_PATH.write_text(json.dumps(state, indent=2, sort_keys=True))
@@ -248,6 +278,7 @@ def run(force: bool = False) -> dict:
         for item in state["positions"].values()
     )
     state["last_run"] = now.isoformat()
+    state["last_successful_scan"] = now.isoformat()
     action = "60-session review" if review_due else "monitoring existing holdings"
     corporate = f"; {len(action_messages)} corporate action(s)" if action_messages else ""
     state["status"] = f"Completed {action}; {len(fills)} paper fill(s){corporate}"

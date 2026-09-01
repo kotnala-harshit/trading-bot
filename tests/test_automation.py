@@ -1,8 +1,15 @@
 import json
 from datetime import UTC, datetime
 
+import pandas as pd
+
 from qts import automation
-from qts.automation import cooldown_active, drawdown_stop_triggered, market_is_open
+from qts.automation import (
+    cooldown_active,
+    drawdown_stop_triggered,
+    market_is_open,
+    quote_is_current,
+)
 
 
 def test_nse_market_window() -> None:
@@ -21,6 +28,11 @@ def test_drawdown_stop_is_reserved_for_emergencies() -> None:
     assert not drawdown_stop_triggered(-0.05, True)
     assert not drawdown_stop_triggered(-0.20, False)
     assert drawdown_stop_triggered(-0.20, True)
+
+
+def test_quote_must_be_from_current_india_session() -> None:
+    assert quote_is_current(pd.Timestamp("2026-09-01T09:00:00Z"), "2026-09-01")
+    assert not quote_is_current(pd.Timestamp("2026-08-31T09:00:00Z"), "2026-09-01")
 
 
 def test_hub_control_can_disable_paper_orders(tmp_path, monkeypatch) -> None:
