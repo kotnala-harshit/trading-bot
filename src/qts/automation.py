@@ -83,50 +83,98 @@ def append_fills(fills: list) -> None:
             )
 
 
+def record_history(state: dict, timestamp: str, nifty: float) -> None:
+    history = state.setdefault("equity_history", [])
+    history.append({"timestamp": timestamp, "equity": state["last_equity"], "nifty": nifty})
+    state["equity_history"] = history[-5000:]
+
+
 def render_page(state: dict, quotes: dict[str, float]) -> None:
+    equity = float(state.get("last_equity", STARTING_CAPITAL))
+    cash = float(state.get("cash", STARTING_CAPITAL))
+    total_return = equity / STARTING_CAPITAL - 1
+    drawdown = equity / max(float(state.get("peak_equity", equity)), equity) - 1
+    invested = max(0.0, equity - cash)
+    exposure = invested / equity if equity else 0.0
+    risk = "High" if drawdown <= -0.10 else "Medium" if drawdown <= -0.04 else "Low"
     positions = []
     for symbol, item in state["positions"].items():
         price = quotes.get(symbol, item.get("last_price", item["entry_price"]))
         value = item["quantity"] * price
         pnl = value - item["quantity"] * item["entry_price"]
+        pnl_pct = price / item["entry_price"] - 1
         positions.append(
-            f"<tr><td>{html.escape(symbol)}</td><td>{item['quantity']}</td>"
+            f"<tr><td><strong>{html.escape(symbol.replace('.NS', ''))}</strong>"
+            f"<small>Momentum selection</small></td><td>{item['quantity']:,.0f}</td>"
             f"<td>₹{item['entry_price']:,.2f}</td><td>₹{price:,.2f}</td>"
-            f"<td>₹{value:,.2f}</td><td>₹{pnl:,.2f}</td></tr>"
+            f"<td>{value / equity:.1%}</td><td>₹{value:,.0f}</td>"
+            f"<td class='{'positive' if pnl >= 0 else 'negative'}'>₹{pnl:,.0f}<small>{pnl_pct:+.2%}</small></td></tr>"
         )
-    rows = "".join(positions) or "<tr><td colspan='6'>No open paper positions</td></tr>"
+    rows = "".join(positions) or "<tr><td colspan='7'>No open paper positions</td></tr>"
+    activity = []
+    if LEDGER_PATH.exists():
+        with LEDGER_PATH.open(newline="") as handle:
+            fills = list(csv.DictReader(handle))[-8:][::-1]
+        for fill in fills:
+            activity.append(
+                f"<li><span class='trade {fill['side'].lower()}'>{fill['side']}</span>"
+                f"<div><strong>{html.escape(fill['symbol'].replace('.NS', ''))}</strong> · "
+                f"{float(fill['quantity']):,.0f} shares at ₹{float(fill['price']):,.2f}"
+                f"<small>{html.escape(fill['timestamp'][:16].replace('T', ' '))} UTC · fee ₹{float(fill['fees']):,.2f}</small></div></li>"
+            )
+    activity_rows = "".join(activity) or "<li>No paper transactions yet</li>"
     successful_scan = state.get("last_successful_scan") or "Not completed yet"
     last_attempt = state.get("last_attempt") or state.get("last_run") or "Not run yet"
+    chart_data = json.dumps(state.get("equity_history", []), separators=(",", ":"))
     page = f"""<!doctype html><html><head><meta charset='utf-8'>
 <meta name='viewport' content='width=device-width,initial-scale=1'>
 <title>Indian Equity Paper Trader</title><style>
-body{{font:16px system-ui;max-width:1000px;margin:40px auto;padding:0 18px;color:#18202a}}
-.cards{{display:flex;gap:14px;flex-wrap:wrap}}.card{{padding:18px;background:#f2f6fa;border-radius:12px;min-width:180px}}
-table{{border-collapse:collapse;width:100%;margin-top:22px}}th,td{{padding:10px;border-bottom:1px solid #ddd;text-align:right}}th:first-child,td:first-child{{text-align:left}}
-.safe{{color:#087f5b}}.warning{{background:#fff3bf;padding:12px;border-radius:8px}}
-.stale{{background:#ffe3e3;color:#c92a2a;padding:12px;border-radius:8px}}</style></head><body>
-<h1>Indian Equity Paper Trader</h1>
-<p class='safe'><strong>PAPER ONLY · REAL ORDERS DISABLED</strong></p>
-<div class='cards'><div class='card'>Equity<br><strong>₹{state['last_equity']:,.2f}</strong></div>
-<div class='card'>Cash<br><strong>₹{state['cash']:,.2f}</strong></div>
-<div class='card'>Positions<br><strong>{len(state['positions'])}/{MAX_POSITIONS}</strong></div>
-<div class='card'>Dividends<br><strong>₹{state.get('dividends_received', 0):,.2f}</strong></div></div>
-<p><strong>Status:</strong> {html.escape(state['status'])}<br>
-<strong>Last successful market scan:</strong> {successful_scan}<br>
-<strong>Last workflow attempt:</strong> {last_attempt}<br>
-<strong>Latest market data:</strong> {state.get('latest_data_at') or 'Not available'}</p>
-<p id='schedule-health' data-scan='{successful_scan}'>Checking schedule health…</p>
-<table><thead><tr><th>Symbol</th><th>Shares</th><th>Entry</th><th>Latest</th><th>Value</th><th>Open P/L</th></tr></thead><tbody>{rows}</tbody></table>
-<p class='warning'>Delayed public data and GitHub schedules are not exchange-grade. Results include estimated costs but not taxes, gaps, or guaranteed fills.</p>
+*{{box-sizing:border-box}}html{{scroll-behavior:smooth}}body{{margin:0;background:#f6f8f5;color:#17201b;font:15px Inter,ui-sans-serif,system-ui,-apple-system,sans-serif}}a{{color:inherit;text-decoration:none}}
+.shell{{max-width:1240px;margin:auto;padding:0 24px 48px}}nav{{height:72px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #dde4df}}.brand{{font-size:20px;font-weight:800}}.brand i{{display:inline-block;width:12px;height:12px;background:#00b386;border-radius:4px;margin-right:9px}}.links{{display:flex;gap:24px;color:#59645e}}.links a:hover{{color:#008f6b}}.paper{{background:#daf7ea;color:#087657;padding:8px 12px;border-radius:999px;font-size:12px;font-weight:800}}
+header{{display:flex;justify-content:space-between;align-items:end;padding:34px 0 22px}}h1{{font-size:30px;margin:0 0 7px}}h2{{font-size:19px;margin:0}}p{{margin:0;color:#66716b}}.pause{{border:1px solid #e1a18f;background:#fff1ec;color:#9c3d25;padding:10px 14px;border-radius:10px;font-weight:700}}
+.grid{{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}}.card{{background:#fff;border:1px solid #e3e8e4;border-radius:16px;padding:20px;box-shadow:0 6px 22px rgba(28,44,35,.04)}}.metric{{grid-column:span 3}}.metric small,.muted,td small,.activity small{{display:block;color:#7a857f;margin-top:5px}}.metric strong{{display:block;font-size:25px;margin-top:10px}}.positive,.safe{{color:#008f6b!important}}.negative{{color:#db583c!important}}
+.chart{{grid-column:span 8;min-height:355px}}.risk{{grid-column:span 4}}.section-head{{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}}.ranges{{display:flex;gap:5px}}.ranges button{{border:0;background:#f0f4f1;color:#66716b;border-radius:7px;padding:6px 9px;cursor:pointer}}.ranges button.active{{background:#17201b;color:#fff}}canvas{{width:100%;height:255px}}.legend{{display:flex;gap:18px;font-size:12px;color:#66716b}}.legend i{{display:inline-block;width:18px;height:3px;margin-right:6px;vertical-align:middle;background:#00a77b}}.legend .benchmark{{background:#9da7a1}}
+.bar{{height:10px;background:#edf1ee;border-radius:999px;overflow:hidden;margin:10px 0 6px}}.bar i{{display:block;height:100%;background:#00b386;border-radius:999px}}.risk-row{{padding:15px 0;border-bottom:1px solid #edf0ee;display:flex;justify-content:space-between}}.risk-row:last-child{{border:0}}.tag{{padding:5px 9px;border-radius:999px;background:#e7f7ef;color:#087657;font-size:12px;font-weight:800}}.tag.medium{{background:#fff3d7;color:#8a6513}}.tag.high{{background:#ffebe5;color:#a33820}}
+.holdings{{grid-column:span 8}}.activity{{grid-column:span 4}}table{{border-collapse:collapse;width:100%}}th,td{{padding:13px 10px;border-bottom:1px solid #edf0ee;text-align:right;white-space:nowrap}}th{{font-size:12px;color:#7a857f;font-weight:600}}th:first-child,td:first-child{{text-align:left}}.activity ul{{list-style:none;padding:0;margin:0}}.activity li{{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid #edf0ee}}.trade{{min-width:42px;text-align:center;height:24px;padding:4px;border-radius:6px;font-size:11px;font-weight:800}}.buy{{background:#ddf7ec;color:#087657}}.sell{{background:#ffebe5;color:#a33820}}
+.status{{grid-column:span 12;display:flex;justify-content:space-between;gap:22px;align-items:center}}.status-details{{display:flex;gap:26px;flex-wrap:wrap;font-size:13px}}.health{{font-weight:800}}.warning{{margin-top:16px;background:#fff8e8;border:1px solid #f0dfb2;padding:13px 16px;border-radius:12px;color:#735c21}}.stale{{color:#c13d28!important}}
+@media(max-width:900px){{.metric{{grid-column:span 6}}.chart,.risk,.holdings,.activity{{grid-column:span 12}}.links{{display:none}}}}@media(max-width:560px){{.shell{{padding:0 14px 32px}}header{{align-items:start;gap:18px}}h1{{font-size:24px}}.metric{{grid-column:span 12}}.status{{display:block}}.status-details{{display:block}}.status-details span{{display:block;margin-top:8px}}.table-wrap{{overflow:auto}}}}
+</style></head><body><div class='shell'>
+<nav><div class='brand'><i></i>Paperfolio</div><div class='links'><a href='#overview'>Overview</a><a href='#performance'>Performance</a><a href='#holdings'>Holdings</a><a href='#activity'>Activity</a></div><span class='paper'>PAPER ONLY</span></nav>
+<header><div><h1>Indian equity portfolio</h1><p>Automated Nifty 50 momentum research · real orders disabled</p></div><a class='pause' href='https://github.com/kotnala-harshit/trading-bot/edit/main/configs/paper-trader.json'>Pause in GitHub</a></header>
+<main id='overview' class='grid'>
+<section class='card metric'><small>Portfolio value</small><strong>₹{equity:,.0f}</strong><small class='{'positive' if total_return >= 0 else 'negative'}'>{total_return:+.2%} since start</small></section>
+<section class='card metric'><small>Invested</small><strong>₹{invested:,.0f}</strong><small>{exposure:.0%} current exposure</small></section>
+<section class='card metric'><small>Available cash</small><strong>₹{cash:,.0f}</strong><small>₹{state.get('dividends_received', 0):,.0f} dividends received</small></section>
+<section class='card metric'><small>Open positions</small><strong>{len(state['positions'])} / {MAX_POSITIONS}</strong><small>Next review in {max(0, REVIEW_SESSIONS - state.get('sessions_since_review', 0))} sessions</small></section>
+<section id='performance' class='card chart'><div class='section-head'><div><h2>Portfolio performance</h2><p>Normalized against Nifty 50 from recorded scans</p></div><div class='ranges'><button data-days='1'>1D</button><button data-days='7'>1W</button><button data-days='30'>1M</button><button data-days='90'>3M</button><button class='active' data-days='0'>All</button></div></div><canvas id='performance-chart'></canvas><div class='legend'><span><i></i>Portfolio</span><span><i class='benchmark'></i>Nifty 50</span></div></section>
+<section class='card risk'><div class='section-head'><div><h2>Risk monitor</h2><p>Automatic paper controls</p></div><span class='tag {risk.lower()}'>{risk} risk</span></div>
+<div class='risk-row'><span>Current drawdown</span><strong class='{'negative' if drawdown < 0 else 'positive'}'>{drawdown:.2%}</strong></div>
+<div class='risk-row'><span>Equity exposure</span><strong>{exposure:.0%}</strong></div><div class='bar'><i style='width:{exposure:.1%}'></i></div><small class='muted'>Volatility target: {state.get('exposure_target', 1):.0%}</small>
+<div class='risk-row'><span>Emergency stop</span><strong>20% drawdown</strong></div><div class='risk-row'><span>Cooldown</span><strong>{html.escape(state.get('cooldown_until') or 'Inactive')}</strong></div></section>
+<section id='holdings' class='card holdings'><div class='section-head'><div><h2>Holdings</h2><p>Current simulated positions</p></div><span class='tag'>{len(state['positions'])} active</span></div><div class='table-wrap'><table><thead><tr><th>Company</th><th>Shares</th><th>Average</th><th>Latest</th><th>Weight</th><th>Value</th><th>Open P/L</th></tr></thead><tbody>{rows}</tbody></table></div></section>
+<section id='activity' class='card activity'><div class='section-head'><div><h2>Recent activity</h2><p>Auditable paper fills</p></div></div><ul>{activity_rows}</ul></section>
+<section class='card status'><div><h2>System status</h2><p>{html.escape(state['status'])}</p></div><div class='status-details'><span id='schedule-health' class='health' data-scan='{successful_scan}'>Checking schedule…</span><span>Market data<br><strong>{html.escape(state.get('latest_data_at') or 'Not available')}</strong></span><span>Last attempt<br><strong>{html.escape(last_attempt)}</strong></span></div></section>
+</main><p class='warning'>Delayed public data and GitHub schedules are not exchange-grade. Results include estimated costs but not every tax, gap, slippage event or guaranteed fill.</p>
 <script>
 const health=document.getElementById('schedule-health'), scan=Date.parse(health.dataset.scan);
 const india=new Date(Date.now()+330*60000), minutes=india.getUTCHours()*60+india.getUTCMinutes();
 const market=india.getUTCDay()>0&&india.getUTCDay()<6&&minutes>=555&&minutes<=930;
 const stale=!Number.isFinite(scan)||(Date.now()-scan)>20*60*1000;
-health.textContent=market&&stale?'Warning: no successful market scan in the last 20 minutes.':'Schedule health: recent scan or market closed.';
+health.textContent=market&&stale?'Scan delayed':'Schedule healthy';
 health.className=market&&stale?'stale':'safe';
+const history={chart_data}, canvas=document.getElementById('performance-chart'), ctx=canvas.getContext('2d');
+function draw(days=0){{
+ const cutoff=days?Date.now()-days*86400000:0, data=history.filter(x=>Date.parse(x.timestamp)>=cutoff);
+ const shown=data.length>1?data:history, ratio=window.devicePixelRatio||1, rect=canvas.getBoundingClientRect();
+ canvas.width=rect.width*ratio;canvas.height=255*ratio;ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,rect.width,255);
+ if(shown.length<2){{ctx.fillStyle='#7a857f';ctx.font='14px system-ui';ctx.fillText('Performance history will appear after more successful scans.',16,120);return}}
+ const series=[shown.map(x=>x.equity/shown[0].equity-1),shown.map(x=>x.nifty/shown[0].nifty-1)], all=series.flat(), min=Math.min(...all),max=Math.max(...all),span=max-min||.01;
+ ctx.strokeStyle='#e7ebe8';ctx.lineWidth=1;for(let i=0;i<4;i++){{let y=20+i*65;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(rect.width,y);ctx.stroke()}}
+ series.forEach((values,index)=>{{ctx.strokeStyle=index?'#9da7a1':'#00a77b';ctx.lineWidth=index?2:3;ctx.beginPath();values.forEach((value,i)=>{{const x=i/(values.length-1)*rect.width,y=230-(value-min)/span*205;i?ctx.lineTo(x,y):ctx.moveTo(x,y)}});ctx.stroke()}});
+}}
+document.querySelectorAll('.ranges button').forEach(button=>button.onclick=()=>{{document.querySelectorAll('.ranges button').forEach(x=>x.classList.remove('active'));button.classList.add('active');draw(+button.dataset.days)}});addEventListener('resize',()=>draw(+document.querySelector('.ranges .active').dataset.days));draw();
 </script>
-</body></html>"""
+</div></body></html>"""
     PAGE_PATH.parent.mkdir(parents=True, exist_ok=True)
     PAGE_PATH.write_text(page)
 
@@ -152,9 +200,8 @@ def run(force: bool = False) -> dict:
 
     india_day = now.astimezone(ZoneInfo("Asia/Kolkata")).date().isoformat()
     try:
-        exposure_target = volatility_target_exposure(
-            yahoo_chart("^NSEI", period="3mo", interval="1d").frame
-        )
+        index_frame = yahoo_chart("^NSEI", period="3mo", interval="1d").frame
+        exposure_target = volatility_target_exposure(index_frame)
     except (OSError, ValueError, TypeError, KeyError, IndexError, requests.RequestException):
         state["status"] = "Skipped: Nifty volatility risk data unavailable"
         state["last_run"] = now.isoformat()
@@ -318,6 +365,7 @@ def run(force: bool = False) -> dict:
     )
     state["last_run"] = now.isoformat()
     state["last_successful_scan"] = now.isoformat()
+    record_history(state, now.isoformat(), float(index_frame.close.iloc[-1]))
     action = "60-session review" if review_due else "monitoring existing holdings"
     corporate = f"; {len(action_messages)} corporate action(s)" if action_messages else ""
     state["status"] = (

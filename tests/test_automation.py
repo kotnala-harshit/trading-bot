@@ -40,3 +40,24 @@ def test_hub_control_can_disable_paper_orders(tmp_path, monkeypatch) -> None:
     control.write_text(json.dumps({"enabled": False}))
     monkeypatch.setattr(automation, "CONTROL_PATH", control)
     assert not automation.trading_enabled()
+
+
+def test_dashboard_records_and_renders_portfolio_history(tmp_path, monkeypatch) -> None:
+    page = tmp_path / "index.html"
+    monkeypatch.setattr(automation, "PAGE_PATH", page)
+    monkeypatch.setattr(automation, "LEDGER_PATH", tmp_path / "ledger.csv")
+    state = {
+        "cash": 500_000,
+        "last_equity": 1_010_000,
+        "peak_equity": 1_020_000,
+        "positions": {},
+        "sessions_since_review": 1,
+        "status": "Paper monitoring",
+    }
+    automation.record_history(state, "2026-09-01T09:00:00+00:00", 25_000)
+    automation.render_page(state, {})
+    output = page.read_text()
+    assert "Portfolio performance" in output
+    assert "Risk monitor" in output
+    assert "Recent activity" in output
+    assert state["equity_history"][0]["nifty"] == 25_000
