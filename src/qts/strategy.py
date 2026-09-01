@@ -82,3 +82,16 @@ def market_regime_is_positive(index_frame: pd.DataFrame) -> bool:
     if len(index_frame) < 200:
         return False
     return bool(index_frame.close.iloc[-1] > index_frame.close.tail(200).mean())
+
+
+def volatility_target_exposure(
+    index_frame: pd.DataFrame, target: float = 0.20, floor: float = 0.50
+) -> float:
+    """Scale equity exposure down when trailing Nifty volatility exceeds the target."""
+    if not 0 < floor <= 1 or not 0 < target <= 1:
+        raise ValueError("Invalid volatility-target inputs")
+    returns = index_frame.close.pct_change().dropna().iloc[-21:-1]
+    if len(returns) < 20:
+        raise ValueError("Need 21 completed index observations")
+    volatility = float(returns.std() * np.sqrt(252))
+    return floor if not np.isfinite(volatility) or volatility <= 0 else min(1.0, max(floor, target / volatility))

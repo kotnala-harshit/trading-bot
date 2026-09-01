@@ -12,7 +12,7 @@ import requests
 
 from qts.paper import apply_corporate_actions, execute_paper_fill, mark_to_market
 from qts.providers import yahoo_chart, yahoo_corporate_actions
-from qts.strategy import risk_adjusted_momentum_score
+from qts.strategy import risk_adjusted_momentum_score, volatility_target_exposure
 
 ROOT = Path(__file__).resolve().parents[2]
 STATE_PATH = ROOT / "runtime" / "paper_state.json"
@@ -151,6 +151,18 @@ def run(force: bool = False) -> dict:
         return state
 
     india_day = now.astimezone(ZoneInfo("Asia/Kolkata")).date().isoformat()
+    try:
+        exposure_target = volatility_target_exposure(
+            yahoo_chart("^NSEI", period="3mo", interval="1d").frame
+        )
+    except (OSError, ValueError, TypeError, KeyError, IndexError, requests.RequestException):
+        state["status"] = "Skipped: Nifty volatility risk data unavailable"
+        state["last_run"] = now.isoformat()
+        STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        STATE_PATH.write_text(json.dumps(state, indent=2, sort_keys=True))
+        render_page(state, {})
+        return state
+    state["exposure_target"] = exposure_target
     new_session = state.get("last_scan_date") != india_day
     session_count = state.get("sessions_since_review", REVIEW_SESSIONS) + int(new_session)
     review_due = not state["positions"] or session_count >= REVIEW_SESSIONS
@@ -235,12 +247,31 @@ def run(force: bool = False) -> dict:
     if drawdown_stop:
         state["peak_equity"] = state["cash"]
 
+    invested = sum(
+        item["quantity"] * quotes.get(symbol, item.get("last_price", item["entry_price"]))
+        for symbol, item in state["positions"].items()
+    )
+    target_invested = equity * exposure_target
+    if invested > target_invested * 1.02:
+        keep_fraction = target_invested / invested
+        for symbol, item in list(state["positions"].items()):
+            quantity = item["quantity"] - int(item["quantity"] * keep_fraction)
+            if quantity < 1:
+                continue
+            price = quotes.get(symbol, item.get("last_price", item["entry_price"]))
+            state["cash"], remaining, fill = execute_paper_fill(
+                state["cash"], item["quantity"], symbol=symbol, side="SELL",
+                quantity=quantity, price=price, fee_bps=FEE_BPS,
+            )
+            fills.append(fill)
+            item["quantity"] = remaining
+
     if review_due and not cooldown_active(state, now):
         state["sessions_since_review"] = 0
     for _, symbol, price in (ranked if review_due else []):
         if symbol in state["positions"] or len(state["positions"]) >= MAX_POSITIONS:
             continue
-        allocation = min(equity / MAX_POSITIONS, state["cash"])
+        allocation = min(target_invested / MAX_POSITIONS, state["cash"])
         affordable = int(state["cash"] / (price * (1 + FEE_BPS / 10_000)))
         quantity = min(int(allocation / (price * (1 + FEE_BPS / 10_000))), affordable)
         if quantity < 1:
@@ -257,7 +288,7 @@ def run(force: bool = False) -> dict:
 
     # Reinvest corporate-action cash toward equal weights on scheduled reviews.
     if review_due and state["positions"]:
-        target_value = equity / MAX_POSITIONS
+        target_value = target_invested / MAX_POSITIONS
         ranked_prices = {symbol: price for _, symbol, price in ranked}
         for _, symbol, price in ranked:
             item = state["positions"].get(symbol)
@@ -289,7 +320,10 @@ def run(force: bool = False) -> dict:
     state["last_successful_scan"] = now.isoformat()
     action = "60-session review" if review_due else "monitoring existing holdings"
     corporate = f"; {len(action_messages)} corporate action(s)" if action_messages else ""
-    state["status"] = f"Completed {action}; {len(fills)} paper fill(s){corporate}"
+    state["status"] = (
+        f"Completed {action}; {len(fills)} paper fill(s); "
+        f"volatility target {exposure_target:.0%}{corporate}"
+    )
     STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
     STATE_PATH.write_text(json.dumps(state, indent=2, sort_keys=True))
     append_fills(fills)

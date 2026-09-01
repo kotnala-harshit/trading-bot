@@ -92,3 +92,11 @@ The preferred rules were rerun on 31 August 2026 using Yahoo adjusted OHLC histo
 | Raw price only | +7.32% | 60.24% | -22.23% | +13.50% | 56.38% |
 
 The comparison confirms that corporate-action treatment materially changes both ranking and measured performance. It does not isolate dividends from split corrections, and Yahoo is a convenience source rather than an official corporate-action record. Forward paper events are therefore deduplicated and auditable, but any eventual live workflow would require reconciliation to NSE/company notices.
+
+### Volatility-target drawdown experiment — 1 September 2026
+
+The existing buffered strategy was retested with four predefined controls: broader eight-stock diversification, a Nifty 200-day EMA exposure filter, progressive portfolio brakes, and 20% annualized Nifty volatility targeting with a 50% minimum exposure. The combined controls reduced drawdown but damaged the untouched later-five-year return; diversification, the EMA filter, and progressive brakes were therefore rejected.
+
+Volatility targeting alone preserved the five-stock/top-ten-buffer selection and trade win rate. In the untouched later five years it changed annualized return from 13.55% to 13.03%, maximum drawdown from -19.01% to -17.76%, and worst rolling three-month return from -17.57% to -13.02%. The proportion of profitable rolling 12-month periods increased from 87.18% to 87.59%, and the proportion beating Nifty increased from 67.04% to 70.30%. In the earlier five-year development sample it reduced maximum drawdown from -36.90% to -30.02% and worst rolling three-month return from -27.17% to -19.68%, while annualized return changed from 17.38% to 14.75%.
+
+This isolated control is promoted to paper observation. It does not eliminate drawdowns, guarantee a loss boundary, or authorize live orders.

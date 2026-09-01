@@ -10,6 +10,7 @@ from qts.strategy import (
     metrics,
     risk_adjusted_momentum_score,
     trend_signals,
+    volatility_target_exposure,
 )
 
 
@@ -60,3 +61,10 @@ def test_anomaly_gate_rejects_extreme_price_move():
         }
     )
     assert anomaly_risk(frame)
+
+
+def test_volatility_target_reduces_exposure_but_keeps_floor():
+    calm = pd.DataFrame({"close": [100 * 1.001**day for day in range(30)]})
+    volatile = pd.DataFrame({"close": [100 + (-1) ** day * day * 2 for day in range(30)]})
+    assert volatility_target_exposure(calm) == 1.0
+    assert 0.5 <= volatility_target_exposure(volatile) < 1.0
