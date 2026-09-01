@@ -26,20 +26,28 @@ def simulate(
     membership: pd.Series | None = None, fx: pd.DataFrame | None = None,
     correlation_limit: float | None = None,
 ) -> dict:
-    calendar = pd.DatetimeIndex(benchmark.timestamp.dt.tz_localize(None)).normalize()
-    calendar = calendar[(calendar >= start) & (calendar <= end)]
+    full_calendar = pd.DatetimeIndex(benchmark.timestamp.dt.tz_localize(None)).normalize()
+    full_calendar = full_calendar[
+        (full_calendar >= start - pd.Timedelta(days=300)) & (full_calendar <= end)
+    ]
+    calendar = full_calendar[full_calendar >= start]
     close = pd.DataFrame(
         {symbol: frame.set_index(frame.timestamp.dt.tz_localize(None).dt.normalize()).close
          for symbol, frame in frames.items()}
-    ).reindex(calendar)
+    ).reindex(full_calendar)
     opens = pd.DataFrame(
         {symbol: frame.set_index(frame.timestamp.dt.tz_localize(None).dt.normalize()).open
          for symbol, frame in frames.items()}
-    ).reindex(calendar)
-    index = benchmark.set_index(benchmark.timestamp.dt.tz_localize(None).dt.normalize()).close.reindex(calendar)
+    ).reindex(full_calendar)
+    index_history = benchmark.set_index(
+        benchmark.timestamp.dt.tz_localize(None).dt.normalize()
+    ).close.reindex(full_calendar)
+    index = index_history.reindex(calendar)
     returns = close.pct_change(fill_method=None)
     scores = (close.pct_change(63) / (returns.rolling(63).std() * math.sqrt(252))).shift(1)
-    exposure = (0.20 / (index.pct_change().rolling(20).std().shift(1) * math.sqrt(252))).clip(0.5, 1)
+    exposure = (
+        0.20 / (index_history.pct_change().rolling(20).std().shift(1) * math.sqrt(252))
+    ).clip(0.5, 1)
     cash, positions, entries, trades, forced_exits, last_review = CAPITAL, {}, {}, [], 0, -60
     curve = []
     for day_number, day in enumerate(calendar):
@@ -113,18 +121,26 @@ def simulate(
     daily = equity.pct_change().dropna()
     benchmark_years = (index.dropna().index[-1] - index.dropna().index[0]).days / 365.25
     result = {
+        "total_return": float(equity.iloc[-1] / CAPITAL - 1),
         "cagr": float((equity.iloc[-1] / CAPITAL) ** (1 / years) - 1),
         "max_drawdown": float((equity / equity.cummax() - 1).min()),
         "benchmark_cagr": float(
             (index.dropna().iloc[-1] / index.dropna().iloc[0]) ** (1 / benchmark_years) - 1
         ),
         "benchmark_max_drawdown": float((index / index.cummax() - 1).min()),
+        "benchmark_total_return": float(index.dropna().iloc[-1] / index.dropna().iloc[0] - 1),
+        "inr_total_return": float(equity_inr.iloc[-1] / CAPITAL - 1),
         "inr_cagr": float((equity_inr.iloc[-1] / CAPITAL) ** (1 / years) - 1),
         "benchmark_inr_cagr": float((benchmark_inr.iloc[-1] / CAPITAL) ** (1 / years) - 1),
         "sharpe": float(daily.mean() / daily.std() * math.sqrt(252)),
         "win_rate": float(np.mean(np.array(trades) > 0)) if trades else None,
         "trades": len(trades),
         "forced_stale_exits": forced_exits,
+        "ending_positions": {
+            symbol: float(close.loc[equity.index[-1], symbol] / entries[symbol] - 1)
+            for symbol in positions
+            if pd.notna(close.loc[equity.index[-1], symbol])
+        },
     }
     for label, days in (("3m", 63), ("6m", 126), ("9m", 189), ("12m", 252)):
         rolling = equity.pct_change(days).dropna()
@@ -155,6 +171,20 @@ def fetch(symbol: str):
         return None
 
 
+def price_history_is_usable(frame: pd.DataFrame) -> bool:
+    jumps = frame.close.pct_change(fill_method=None).abs()
+    internal_gap = frame.timestamp.diff().dt.days.iloc[1:-1].max()
+    return len(frame) >= 200 and jumps.max() <= 0.60 and internal_gap <= 45
+
+
+def json_safe(value):
+    if isinstance(value, dict):
+        return {key: json_safe(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [json_safe(item) for item in value]
+    return None if isinstance(value, float) and not math.isfinite(value) else value
+
+
 def main() -> None:
     membership = load_membership()
     benchmark = yahoo_chart("SPY", "10y", "1d").frame
@@ -166,7 +196,14 @@ def main() -> None:
     )
     with ThreadPoolExecutor(max_workers=16) as pool:
         datasets = [dataset for dataset in pool.map(fetch, symbols) if dataset is not None]
-    frames = {dataset.symbol: dataset.frame for dataset in datasets}
+    frames = {
+        dataset.symbol: dataset.frame
+        for dataset in datasets
+        if price_history_is_usable(dataset.frame)
+    }
+    rejected_histories = sorted(
+        dataset.symbol for dataset in datasets if dataset.symbol not in frames
+    )
     fx = yahoo_chart("INR=X", "10y", "1d").frame
     development = simulate(
         frames, benchmark, start, split - pd.Timedelta(days=1), membership, fx
@@ -179,6 +216,18 @@ def main() -> None:
     diversified_holdout = simulate(
         frames, benchmark, split, end, membership, fx, correlation_limit=0.75
     )
+    timeline = {
+        label: simulate(frames, benchmark, max(start, end - offset), end, membership, fx)
+        for label, offset in (
+            ("3m", pd.DateOffset(months=3)),
+            ("6m", pd.DateOffset(months=6)),
+            ("9m", pd.DateOffset(months=9)),
+            ("12m", pd.DateOffset(months=12)),
+            ("3y", pd.DateOffset(years=3)),
+            ("5y", pd.DateOffset(years=5)),
+            ("10y", pd.DateOffset(years=10)),
+        )
+    }
     coverage = len(frames) / len(symbols)
     membership_current = membership.index.max() >= end - pd.Timedelta(days=7)
     withholding_modelled, holdout_reused = False, True
@@ -201,6 +250,7 @@ def main() -> None:
         "membership_current": membership_current,
         "requested_symbols": len(symbols),
         "downloaded_symbols": len(frames),
+        "rejected_price_histories": rejected_histories,
         "price_coverage": coverage,
         "residual_survivorship_bias": coverage < 0.98,
         "withholding_rate": 0.25,
@@ -208,6 +258,7 @@ def main() -> None:
         "holdout_reused_after_baseline_review": holdout_reused,
         "cost_bps_one_way": COST * 10_000,
         "promotion_passed": promoted,
+        "timeline": timeline,
         "correlation_experiment": {
             "status": "rejected",
             "limit": 0.75,
@@ -217,6 +268,7 @@ def main() -> None:
         "development": development,
         "holdout": holdout,
     }
+    output = json_safe(output)
     path = ROOT / "artifacts/us_phase2_results.json"
     path.write_text(json.dumps(output, indent=2))
     print(json.dumps(output, indent=2))

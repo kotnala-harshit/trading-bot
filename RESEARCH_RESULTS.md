@@ -4,9 +4,21 @@
 
 Status: **research completed; paper activation remains locked**.
 
-The upgraded baseline used community point-in-time S&P 500 membership, adjusted Yahoo OHLC history, five holdings, a top-ten retention buffer, 63-session risk-adjusted momentum, 60-session reviews, 20% volatility targeting, next-open execution, 0.05% one-way costs, adjusted SPY, and USD/INR attribution. Free Yahoo history was available for 611 of 721 requested historical tickers (84.7%), so removed companies remain underrepresented. The community membership file ends on 30 June 2026, before the test end, and therefore also fails the freshness gate.
+The upgraded baseline used community point-in-time S&P 500 membership, adjusted Yahoo OHLC history, five holdings, a top-ten retention buffer, 63-session risk-adjusted momentum, 60-session reviews, 20% volatility targeting, next-open execution, 0.05% one-way costs, adjusted SPY, and USD/INR attribution. Free Yahoo history passed availability and continuity checks for 590 of 721 requested historical tickers (81.8%), so removed companies remain underrepresented. The community membership file ends on 30 June 2026, before the test end, and therefore also fails the freshness gate.
 
-The later five-year result returned 13.49% annualized in USD versus 12.46% for adjusted SPY and 19.65% in INR after currency translation versus 18.56% for SPY. Maximum drawdown was -48.06% versus -24.50%, only 42.70% of 89 closed trades were profitable, and the strategy beat SPY in 33.83% of rolling 12-month windows. A 0.75 maximum-correlation selection experiment reduced holdout return to 8.59% without materially improving drawdown and was rejected. This period is no longer untouched because it informed that diagnostic. The 25% US-India treaty dividend-withholding ceiling for an individual is recorded but not deducted because adjusted prices do not separate reinvested gross dividends reliably. Coverage, drawdown, rolling-comparison, withholding, and fresh-forward gates therefore fail; no US paper orders are enabled.
+After correcting the simulator to provide pre-window signal history and rejecting 21 discontinuous or internally gapped price histories, the later five-year result returned 2.25% annualized in USD versus 12.46% for adjusted SPY. Maximum drawdown was -35.35%, 50.52% of 97 closed trades were profitable, and the strategy beat SPY in 37.03% of rolling 12-month windows. A 0.75 maximum-correlation selection experiment returned 1.77% annualized with a -34.51% drawdown and was rejected. This period is no longer untouched because it informed diagnostics. The 25% US-India treaty dividend-withholding ceiling for an individual is recorded but not deducted because adjusted prices do not separate reinvested gross dividends reliably. Coverage, drawdown, rolling-comparison, withholding, and fresh-forward gates therefore fail; no US paper orders are enabled.
+
+| Window | Strategy USD | SPY USD | Strategy INR | Max drawdown | Trade win rate |
+|---|---:|---:|---:|---:|---:|
+| 3 months | +6.05% total | +0.69% total | +5.57% total | -15.21% | 60.00% |
+| 6 months | +36.50% total | +11.57% total | +42.54% total | -34.59% | 55.56% |
+| 9 months | +196.66% total | +12.91% total | +215.79% total | -18.60% | 64.29% |
+| 12 months | +127.14% total | +20.30% total | +145.51% total | -28.87% | 68.42% |
+| 3 years | +51.58% annualized | +20.56% annualized | +58.57% annualized | -24.14% | 71.93% |
+| 5 years | +4.02% annualized | +12.53% annualized | +9.68% annualized | -35.85% | 51.02% |
+| 10 years | +9.88% annualized | +15.15% annualized | +13.93% annualized | -47.60% | 61.66% |
+
+The recent 6–12 month results are highly concentrated endpoint samples and conflict sharply with the weak five- and ten-year evidence. They are recorded for comparison, not treated as a forecast or a reason to activate paper trading.
 
 ## Free-hand point-in-time factor search — 31 August 2026
 

@@ -135,6 +135,20 @@ def render_page(state: dict, quotes: dict[str, float]) -> None:
     us_win_rate = us_holdout.get("win_rate")
     us_inr = us_holdout.get("inr_cagr")
     us_coverage = us_results.get("price_coverage")
+    us_timeline_rows = []
+    for label in ("3m", "6m", "9m", "12m", "3y", "5y", "10y"):
+        result = us_results.get("timeline", {}).get(label, {})
+        short = label.endswith("m")
+        win_rate = result.get("win_rate")
+        us_timeline_rows.append(
+            f"<tr><td><strong>{label.upper()}</strong></td>"
+            f"<td>{result.get('total_return' if short else 'cagr', 0):+.2%}</td>"
+            f"<td>{result.get('benchmark_total_return' if short else 'benchmark_cagr', 0):+.2%}</td>"
+            f"<td>{result.get('inr_total_return' if short else 'inr_cagr', 0):+.2%}</td>"
+            f"<td class='negative'>{result.get('max_drawdown', 0):.2%}</td>"
+            f"<td>{win_rate:.1%}</td></tr>"
+        )
+    us_timeline_rows = "".join(us_timeline_rows)
     page = f"""<!doctype html><html><head><meta charset='utf-8'>
 <meta name='viewport' content='width=device-width,initial-scale=1'>
 <title>Indian Equity Paper Trader</title><style>
@@ -166,9 +180,10 @@ header{{display:flex;justify-content:space-between;align-items:end;padding:34px 
 <section id='activity' class='card activity'><div class='section-head'><div><h2>Recent activity</h2><p>Auditable paper fills</p></div></div><ul>{activity_rows}</ul></section>
 <section class='card status'><div><h2>System status</h2><p>{html.escape(state['status'])}</p></div><div class='status-details'><span id='schedule-health' class='health' data-scan='{successful_scan}'>Checking schedule…</span><span>Market data<br><strong>{html.escape(state.get('latest_data_at') or 'Not available')}</strong></span><span>Last attempt<br><strong>{html.escape(last_attempt)}</strong></span></div></section>
 </main>
-<main id='us' class='grid market-panel'><section class='card phase-hero'><div><h2>US equities · Phase 2</h2><p>Ten-year adjusted-price study · last five years held out</p></div><span class='locked'>VALIDATION REVIEW · LOCKED</span></section>
+<main id='us' class='grid market-panel'><section class='card phase-hero'><div><h2>US equities · Phase 2</h2><p>Adjusted-price study across short and long windows</p></div><span class='locked'>VALIDATION REVIEW · LOCKED</span></section>
 <section class='card metric'><small>Holdout annualized · USD</small><strong>{us_cagr:.2%}</strong><small>SPY adjusted: {us_benchmark:.2%}</small></section><section class='card metric'><small>Holdout annualized · INR</small><strong>{us_inr:.2%}</strong><small>SPY plus FX: {us_holdout.get('benchmark_inr_cagr'):.2%}</small></section><section class='card metric'><small>Maximum drawdown</small><strong>{us_drawdown:.2%}</strong><small>SPY adjusted: {us_holdout.get('benchmark_max_drawdown'):.2%}</small></section><section class='card metric'><small>Historical price coverage</small><strong>{us_coverage:.1%}</strong><small>{us_results.get('downloaded_symbols', 0)} / {us_results.get('requested_symbols', 0)} tickers</small></section>
-<section class='card checklist'><h2>What the test says</h2><ul><li>Point-in-time membership replaced the current-winners shortlist</li><li>Return modestly beat SPY, but drawdown reached {us_drawdown:.1%}</li><li>{us_win_rate:.1%} of {us_holdout.get('trades', 0)} closed trades were profitable</li><li>110 historical symbols lacked free prices; membership ends {us_results.get('membership_latest')}</li><li>25% treaty withholding is documented but not separable from adjusted prices</li></ul></section><section class='card roadmap'><h2>Promotion rule</h2><p>Rejected: data coverage, membership freshness, drawdown and rolling benchmark gates failed. The correlation-diversification experiment also reduced return without improving drawdown. A fresh forward paper period is required.</p></section></main>
+<section class='card checklist'><h2>What the test says</h2><ul><li>Point-in-time membership replaced the current-winners shortlist</li><li>Five-year return trailed SPY and drawdown reached {us_drawdown:.1%}</li><li>{us_win_rate:.1%} of {us_holdout.get('trades', 0)} closed trades were profitable</li><li>{us_results.get('requested_symbols', 0) - us_results.get('downloaded_symbols', 0)} historical symbols failed free-data checks; membership ends {us_results.get('membership_latest')}</li><li>25% treaty withholding is documented but not separable from adjusted prices</li></ul></section><section class='card roadmap'><h2>Promotion rule</h2><p>Rejected: data coverage, membership freshness, five- and ten-year benchmark, drawdown and withholding gates failed. Recent short-window gains are not assumed to continue.</p></section>
+<section class='card' style='grid-column:span 12'><div class='section-head'><div><h2>Same timeline as Phase 1</h2><p>Month rows show total return; year rows show annualized return</p></div></div><div class='table-wrap'><table><thead><tr><th>Window</th><th>Strategy USD</th><th>SPY USD</th><th>Strategy INR</th><th>Max drawdown</th><th>Trade win rate</th></tr></thead><tbody>{us_timeline_rows}</tbody></table></div></section></main>
 <main id='global' class='grid market-panel'><section class='card phase-hero'><div><h2>Other global markets · Phase 3</h2><p>Market-by-market research, never one mixed unvalidated pool</p></div><span class='locked'>RESEARCH LOCKED</span></section>
 <section class='card metric'><small>Initial markets</small><strong>UK · EU · Japan</strong><small>One exchange at a time</small></section><section class='card metric'><small>Benchmarks</small><strong>FTSE · STOXX · Nikkei</strong><small>Local total-return indices</small></section><section class='card metric'><small>Currency</small><strong>Multi-FX</strong><small>Base return reported in INR</small></section><section class='card metric'><small>Paper capital</small><strong>Not started</strong><small>No simulated orders</small></section>
 <section class='card checklist'><h2>Before paper activation</h2><ul><li>Exchange-specific membership, holidays and trading hours</li><li>Local currency, dividends and withholding taxes</li><li>Liquidity and data-quality gates for each market</li><li>Separate historical holdout and benchmark comparison</li><li>Separate ledgers so results cannot contaminate phases</li></ul></section><section class='card roadmap'><h2>Promotion rule</h2><p>Each country must pass independently. Markets that fail remain visible as research but cannot place paper orders.</p></section></main>
