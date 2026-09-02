@@ -21,7 +21,7 @@ class UpstoxClient:
     timeout: int = 15
 
     @classmethod
-    def from_env(cls) -> "UpstoxClient":
+    def from_env(cls) -> UpstoxClient:
         token = os.getenv("UPSTOX_ACCESS_TOKEN", "")
         if not token:
             raise ValueError("UPSTOX_ACCESS_TOKEN is required for Upstox market data")

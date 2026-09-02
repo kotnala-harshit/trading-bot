@@ -1,6 +1,6 @@
 import pytest
 
-from qts.broker import OrderRequest, Quote
+from qts.broker import Quote
 from qts.execution import build_rebalance_orders, executable_price, reconcile_state
 
 
