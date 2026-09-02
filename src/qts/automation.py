@@ -23,6 +23,7 @@ PAGE_PATH = ROOT / "docs" / "index.html"
 US_RESULTS_PATH = ROOT / "artifacts" / "us_phase2_results.json"
 US_STATE_PATH = ROOT / "runtime" / "us_paper_state.json"
 PHASE25_RESULTS_PATH = ROOT / "artifacts" / "phase25_results.json"
+US_ETF_RESULTS_PATH = ROOT / "artifacts" / "us_phase2_etf_results.json"
 STARTING_CAPITAL = 1_000_000.0
 MAX_POSITIONS = 5
 KEEP_RANK = 10
@@ -169,6 +170,19 @@ def render_page(state: dict, quotes: dict[str, float]) -> None:
             f"<td>{result.get('trades', 0)}</td></tr>"
         )
     us_defensive_rows = "".join(us_defensive_rows)
+    us_etf = json.loads(US_ETF_RESULTS_PATH.read_text()) if US_ETF_RESULTS_PATH.exists() else {}
+    us_etf_rows = []
+    for label in ("3m", "6m", "9m", "12m", "3y", "5y", "10y"):
+        result = us_etf.get("timeline", {}).get(label, {})
+        short = label.endswith("m")
+        us_etf_rows.append(
+            f"<tr><td><strong>{label.upper()}</strong></td>"
+            f"<td>{result.get('total_return' if short else 'cagr', 0):+.2%}</td>"
+            f"<td>{result.get('spy_total_return' if short else 'spy_cagr', 0):+.2%}</td>"
+            f"<td class='negative'>{result.get('max_drawdown', 0):.2%}</td>"
+            f"<td>{result.get('win_rate', 0):.1%}</td></tr>"
+        )
+    us_etf_rows = "".join(us_etf_rows)
     phase25 = json.loads(PHASE25_RESULTS_PATH.read_text()) if PHASE25_RESULTS_PATH.exists() else {}
     phase25_rows = []
     for label in ("3m", "6m", "9m", "12m", "3y", "5y", "10y"):
@@ -218,6 +232,7 @@ header{{display:flex;justify-content:space-between;align-items:end;padding:34px 
 <section class='card metric'><small>Holdout annualized · USD</small><strong>{us_cagr:.2%}</strong><small>SPY adjusted: {us_benchmark:.2%}</small></section><section class='card metric'><small>Holdout annualized · INR</small><strong>{us_inr:.2%}</strong><small>SPY plus FX: {us_holdout.get('benchmark_inr_cagr'):.2%}</small></section><section class='card metric'><small>Maximum drawdown</small><strong>{us_drawdown:.2%}</strong><small>SPY adjusted: {us_holdout.get('benchmark_max_drawdown'):.2%}</small></section><section class='card metric'><small>Historical price coverage</small><strong>{us_coverage:.1%}</strong><small>{us_results.get('downloaded_symbols', 0)} / {us_results.get('requested_symbols', 0)} tickers</small></section>
 <section class='card checklist'><h2>What the test says</h2><ul><li>Paper observation uses $10,000—not real converted or broker-held funds</li><li>Five-year return trailed SPY and drawdown reached {us_drawdown:.1%}</li><li>{us_win_rate:.1%} of {us_holdout.get('trades', 0)} closed trades were profitable</li><li>{us_results.get('requested_symbols', 0) - us_results.get('downloaded_symbols', 0)} historical symbols failed free-data checks; membership ends {us_results.get('membership_latest')}</li><li>25% treaty withholding is documented but not separable from adjusted prices</li></ul></section><section class='card roadmap'><h2>Safety status</h2><p>Paper observation is active, but promotion remains rejected. No broker credentials or real-order path exist. Disable with <code>us_enabled</code> in the GitHub control file.</p></section>
 <section class='card' style='grid-column:span 12'><div class='section-head'><div><h2>Capital-preservation diagnostic</h2><p>7% volatility target · 40% maximum exposure · SPY 200-day EMA cash gate</p></div></div><div class='table-wrap'><table><thead><tr><th>Window</th><th>Strategy USD</th><th>Max drawdown</th><th>Trade win rate</th><th>Closed trades</th></tr></thead><tbody>{us_defensive_rows}</tbody></table></div><p class='warning'>Drawdown moved near 10%, but the 70–80% win target did not hold across horizons. This is diagnostic evidence, not a promoted model.</p></section>
+<section class='card' style='grid-column:span 12'><div class='section-head'><div><h2>Long-term core-satellite improvement</h2><p>70% SPY core · 30% momentum satellite · research only</p></div></div><div class='table-wrap'><table><thead><tr><th>Window</th><th>Strategy</th><th>SPY</th><th>Max drawdown</th><th>Allocation win rate</th></tr></thead><tbody>{us_etf_rows}</tbody></table></div><p class='warning'>Long-term returns improved substantially versus the stock-selection model, but still trailed SPY and required materially larger drawdowns. The live paper rules were not changed.</p></section>
 <section class='card' style='grid-column:span 12'><div class='section-head'><div><h2>Unconstrained baseline</h2><p>Month rows show total return; year rows show annualized return</p></div></div><div class='table-wrap'><table><thead><tr><th>Window</th><th>Strategy USD</th><th>SPY USD</th><th>Strategy INR</th><th>Max drawdown</th><th>Trade win rate</th></tr></thead><tbody>{us_timeline_rows}</tbody></table></div></section></main>
 <main id='phase25' class='grid market-panel'><section class='card phase-hero'><div><h2>India + US rotation · Phase 2.5</h2><p>₹10 lakh historical simulation · no paper or live deployment</p></div><span class='locked'>RESEARCH ONLY</span></section>
 <section class='card metric'><small>Rule</small><strong>20 sessions</strong><small>Rotate using prior 63-session signal</small></section><section class='card metric'><small>Maximum exposure</small><strong>60%</strong><small>Remaining capital stays simulated cash</small></section><section class='card metric'><small>Later 5y annualized</small><strong>{phase25.get('holdout', {}).get('cagr', 0):.2%}</strong><small>Drawdown {phase25.get('holdout', {}).get('max_drawdown', 0):.2%}</small></section><section class='card metric'><small>Later 5y win rate</small><strong>{phase25.get('holdout', {}).get('win_rate', 0):.1%}</strong><small>{phase25.get('holdout', {}).get('closed_trades', 0)} closed rotations</small></section>

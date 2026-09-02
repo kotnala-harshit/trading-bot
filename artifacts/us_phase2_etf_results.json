@@ -1,0 +1,116 @@
+{
+  "generated_at": "2026-09-01T23:59:48.335618+00:00",
+  "status": "research_only_not_deployed",
+  "universe": [
+    "SPY",
+    "QQQ",
+    "IWM",
+    "MDY",
+    "RSP"
+  ],
+  "strategy": "70% SPY core plus 30% ETF momentum satellite with top-two retention",
+  "review_sessions": 60,
+  "exposure": "70% SPY core plus up to 30% satellite",
+  "cost_bps_per_weight_change": 5.0,
+  "development": {
+    "ending_value_usd": 20300.417168607455,
+    "total_return": 1.0300417168607456,
+    "cagr": 0.1522404478930408,
+    "max_drawdown": -0.3201176073387102,
+    "win_rate": 0.7692307692307693,
+    "closed_allocations": 13,
+    "spy_total_return": 1.270120537669868,
+    "spy_cagr": 0.17830727039199967,
+    "spy_max_drawdown": -0.3371727263767488
+  },
+  "holdout": {
+    "ending_value_usd": 14895.54451633319,
+    "total_return": 0.489554451633319,
+    "cagr": 0.08301627520423671,
+    "max_drawdown": -0.2537236366371982,
+    "win_rate": 0.625,
+    "closed_allocations": 16,
+    "spy_total_return": 0.7984949911692767,
+    "spy_cagr": 0.1246483893063457,
+    "spy_max_drawdown": -0.24496392197775074
+  },
+  "timeline": {
+    "3m": {
+      "ending_value_usd": 10015.6650531981,
+      "total_return": 0.0015665053198099521,
+      "cagr": 0.006233679281026694,
+      "max_drawdown": -0.051403607426737996,
+      "win_rate": 1.0,
+      "closed_allocations": 2,
+      "spy_total_return": 0.006858672937944732,
+      "spy_cagr": 0.02750827628722652,
+      "spy_max_drawdown": -0.04494652583696357
+    },
+    "6m": {
+      "ending_value_usd": 10995.44895240955,
+      "total_return": 0.099544895240955,
+      "cagr": 0.20852886477394517,
+      "max_drawdown": -0.07008947682794975,
+      "win_rate": 0.6666666666666666,
+      "closed_allocations": 3,
+      "spy_total_return": 0.11574972171077791,
+      "spy_cagr": 0.24433875807350502,
+      "spy_max_drawdown": -0.07675651186050281
+    },
+    "9m": {
+      "ending_value_usd": 11043.570420052647,
+      "total_return": 0.10435704200526463,
+      "cagr": 0.14147453838950597,
+      "max_drawdown": -0.08961082484585736,
+      "win_rate": 0.6666666666666666,
+      "closed_allocations": 3,
+      "spy_total_return": 0.12909768198065974,
+      "spy_cagr": 0.17568952872824029,
+      "spy_max_drawdown": -0.08884968175523811
+    },
+    "12m": {
+      "ending_value_usd": 11855.844376114968,
+      "total_return": 0.1855844376114968,
+      "cagr": 0.18627773424569116,
+      "max_drawdown": -0.08961082484585736,
+      "win_rate": 1.0,
+      "closed_allocations": 3,
+      "spy_total_return": 0.20296248090281788,
+      "spy_cagr": 0.2037260889798269,
+      "spy_max_drawdown": -0.08884968175523811
+    },
+    "3y": {
+      "ending_value_usd": 14479.946485814706,
+      "total_return": 0.44799464858147053,
+      "cagr": 0.1312973292293007,
+      "max_drawdown": -0.19544399710087812,
+      "win_rate": 0.7272727272727273,
+      "closed_allocations": 11,
+      "spy_total_return": 0.7525245451297393,
+      "spy_cagr": 0.20559889977360757,
+      "spy_max_drawdown": -0.18755234489427297
+    },
+    "5y": {
+      "ending_value_usd": 14957.922367004558,
+      "total_return": 0.4957922367004557,
+      "cagr": 0.08387461094714843,
+      "max_drawdown": -0.2537236366371982,
+      "win_rate": 0.625,
+      "closed_allocations": 16,
+      "spy_total_return": 0.8040283255916663,
+      "spy_cagr": 0.12526726997331328,
+      "spy_max_drawdown": -0.24496392197775074
+    },
+    "10y": {
+      "ending_value_usd": 30365.206402583677,
+      "total_return": 2.0365206402583675,
+      "cagr": 0.117525500608612,
+      "max_drawdown": -0.3201176073387102,
+      "win_rate": 0.7142857142857143,
+      "closed_allocations": 28,
+      "spy_total_return": 3.095361752463825,
+      "spy_cagr": 0.15147465397346171,
+      "spy_max_drawdown": -0.3371727263767488
+    }
+  }
+}

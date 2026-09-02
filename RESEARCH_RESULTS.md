@@ -22,6 +22,22 @@ The first five years returned 8.78% annualized with a -16.50% drawdown; the late
 
 Status: **research completed; paper activation remains locked**.
 
+### Long-term core-satellite improvement — 2 September 2026
+
+The main gaps were incomplete historical stock coverage, ticker reuse, five-stock concentration, and excessive defensive cash. A direct Phase 1-style all-ETF rotation failed its later five-year test at -0.68% annualized and was discarded. One follow-up retained 70% continuously in adjusted SPY and used 30% as a 63-session risk-adjusted-momentum satellite across QQQ, IWM, MDY, and RSP, reviewed every 60 sessions with a top-two retention buffer and 0.05% cost per weight change.
+
+| Window | Core-satellite | Adjusted SPY | Max drawdown | Allocation win rate |
+|---|---:|---:|---:|---:|
+| 3 months | +0.16% total | +0.69% total | -5.14% | 100.00% |
+| 6 months | +9.95% total | +11.57% total | -7.01% | 66.67% |
+| 9 months | +10.44% total | +12.91% total | -8.96% | 66.67% |
+| 12 months | +18.56% total | +20.30% total | -8.96% | 100.00% |
+| 3 years | +13.13% annualized | +20.56% annualized | -19.54% | 72.73% |
+| 5 years | +8.39% annualized | +12.53% annualized | -25.37% | 62.50% |
+| 10 years | +11.75% annualized | +15.15% annualized | -32.01% | 71.43% |
+
+This is a real improvement over the defensive stock selector's 5.34% ten-year and 1.98% five-year annualized results, but it does not beat SPY and its drawdown is much larger. The evidence says the broad US-market core was the missed return source, while active rotation added no demonstrated alpha. The running defensive US paper account was not changed; the core-satellite variant remains research only.
+
 The upgraded baseline used community point-in-time S&P 500 membership, adjusted Yahoo OHLC history, five holdings, a top-ten retention buffer, 63-session risk-adjusted momentum, 60-session reviews, 20% volatility targeting, next-open execution, 0.05% one-way costs, adjusted SPY, and USD/INR attribution. Symbols with separate index-membership spells were excluded because Yahoo may join two companies that reused one ticker; this removed the false short-window gain previously attributed to SNDK. Free Yahoo history passed availability and continuity checks for 552 of 677 remaining historical tickers (81.5%), so removed companies remain underrepresented. The community membership file ends on 30 June 2026, before the test end, and therefore also fails the freshness gate.
 
 After the identity and price-quality checks, the later five-year result returned -1.15% annualized in USD versus 12.46% for adjusted SPY. Maximum drawdown was -35.09% and 52.04% of 98 closed trades were profitable. This period is no longer untouched because it informed diagnostics. The 25% US-India treaty dividend-withholding ceiling for an individual is recorded but not deducted because adjusted prices do not separate reinvested gross dividends reliably. Coverage, drawdown, benchmark, withholding, and fresh-forward gates therefore fail; no US paper orders are enabled.
