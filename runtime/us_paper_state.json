@@ -1,7 +1,7 @@
 {
   "cash": 6749.535598930359,
   "exposure_target": 0.4,
-  "last_attempt": "2026-09-02T19:39:16.692766+00:00",
+  "last_attempt": "2026-09-02T21:58:16.265650+00:00",
   "last_equity": 10065.262741264343,
   "last_run": "2026-09-02T19:39:16.692766+00:00",
   "last_scan_date": "2026-09-02",
@@ -40,5 +40,5 @@
     }
   },
   "sessions_since_review": 1,
-  "status": "US paper monitor; 0 fill(s); 40% exposure"
+  "status": "US market closed"
 }
