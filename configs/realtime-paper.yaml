@@ -1,0 +1,18 @@
+environment: paper
+market_data:
+  provider: upstox
+  mode: realtime
+  token_env: UPSTOX_ACCESS_TOKEN
+execution:
+  provider: internal-paper
+  transmit_orders: false
+  sandbox_order_validation: true
+  sandbox_token_env: UPSTOX_SANDBOX_TOKEN
+  fee_bps: 10
+  slippage_bps: 5
+risk:
+  max_positions: 8
+  max_position_weight: 0.15
+  max_drawdown: -0.20
+  require_fresh_quote: true
+  require_reconciliation_before_orders: true

@@ -35,3 +35,15 @@ Open <http://localhost:8501>. For the full private GitHub, Streamlit Community C
 ## Safety boundary
 
 This repository is production-shaped for paper/staging operations. It is not certified as profitable, fault-tolerant, or suitable for unattended real-money trading. Live promotion requires a deliberate config change plus four runtime acknowledgements; it also requires completing the evidence checklist in [PRODUCTION_READINESS.md](PRODUCTION_READINESS.md).
+
+## Real-time India paper mode
+
+The recommended pre-live architecture is **real broker market data + internal simulated fills**. This keeps market observations realistic without transmitting money-bearing orders.
+
+1. Create an Upstox API app and set `UPSTOX_ACCESS_TOKEN` for market data.
+2. Optionally create an Upstox Sandbox app and set `UPSTOX_SANDBOX_TOKEN` to validate order payload/lifecycle behavior without funds.
+3. Use `configs/realtime-paper.yaml`; `transmit_orders` remains false.
+4. Apply conservative spread/slippage assumptions to every simulated fill and compare theoretical signal price vs simulated execution price.
+5. Before any future live transmission, reconcile broker positions, cash, and open orders. Any mismatch must block new orders.
+
+Do not commit access tokens to GitHub. Sandbox success validates API integration, not strategy profitability or real-market fills.

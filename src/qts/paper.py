@@ -25,10 +25,13 @@ def execute_paper_fill(
     quantity: int,
     price: float,
     fee_bps: float = 10,
+    slippage_bps: float = 0,
 ) -> tuple[float, int, PaperFill]:
     if side not in {"BUY", "SELL"} or quantity < 1 or price <= 0:
         raise ValueError("Invalid paper order")
-    notional = quantity * price
+    direction = 1 if side == "BUY" else -1
+    fill_price = price * (1 + direction * slippage_bps / 10_000)
+    notional = quantity * fill_price
     fees = notional * fee_bps / 10_000
     if side == "BUY":
         if notional + fees > cash:
@@ -38,7 +41,7 @@ def execute_paper_fill(
         if quantity > position:
             raise ValueError("Paper sell exceeds position")
         cash, position = cash + notional - fees, position - quantity
-    fill = PaperFill(datetime.now(UTC).isoformat(), symbol, side, quantity, price, fees)
+    fill = PaperFill(datetime.now(UTC).isoformat(), symbol, side, quantity, fill_price, fees)
     return cash, position, fill
 
 
