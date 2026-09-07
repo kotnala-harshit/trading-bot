@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 from qts.broker import Broker, OrderRequest, Quote
@@ -17,14 +18,20 @@ def executable_price(quote: Quote, side: str, slippage_bps: float = 0.0) -> floa
     """Conservative paper price: cross the spread, then apply adverse slippage."""
     if side not in {"BUY", "SELL"}:
         raise ValueError("side must be BUY or SELL")
+    if not math.isfinite(slippage_bps) or not 0 <= slippage_bps < 10000:
+        raise ValueError("Invalid slippage")
+    if any(v is not None and (not math.isfinite(v) or v <= 0) for v in (quote.last, quote.bid, quote.ask)):
+        raise ValueError("Invalid executable price")
+    if quote.bid is not None and quote.ask is not None and quote.bid > quote.ask:
+        raise ValueError("Crossed bid/ask")
     reference = quote.ask if side == "BUY" and quote.ask else quote.bid if side == "SELL" and quote.bid else quote.last
     direction = 1 if side == "BUY" else -1
     return float(reference) * (1 + direction * slippage_bps / 10_000)
 
 
 def reconcile_state(state: dict, broker: Broker, cash_tolerance: float = 1.0) -> ReconciliationResult:
-    expected = {symbol: int(item["quantity"]) for symbol, item in state.get("positions", {}).items()}
-    actual = {symbol: int(qty) for symbol, qty in broker.get_positions().items() if qty}
+    expected = {symbol: float(item["quantity"]) for symbol, item in state.get("positions", {}).items()}
+    actual = {symbol: float(qty) for symbol, qty in broker.get_positions().items() if qty}
     mismatches: dict[str, tuple[int, int]] = {}
     for symbol in sorted(set(expected) | set(actual)):
         if expected.get(symbol, 0) != actual.get(symbol, 0):

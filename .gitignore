@@ -18,10 +18,22 @@ runtime/*
 artifacts/*
 !artifacts/demo_backtest.csv
 !artifacts/us_phase2_results.json
-!artifacts/phase25_results.json
 !artifacts/us_phase2_etf_results.json
 
 
 .Rhistory
 .RData
 .Rproj.user/
+
+# Provider data and durable execution state stay local.
+data/normalized/**
+data/security_master/**
+data/universe_membership/**
+data/corporate_actions/**
+data/live_cache/**
+data/features/**
+data/backtests/**
+!data/**/.gitkeep
+*.sqlite*
+
+!artifacts/rebuild_results.json

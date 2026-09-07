@@ -1,49 +1,52 @@
-# Quant Trading Workbench
+# Three-phase systematic research and paper trading
 
-A single, deployable MES research and operational-readiness project. It includes an upload-driven Streamlit dashboard, deterministic moving-average research baseline, OHLCV validation, cost stress, IBKR endpoint diagnostics, Docker services, CI, and hard live-trading interlocks.
+Exactly three active phases: **India**, **US**, **Global**. Real-money transmission remains disabled. This checkout prepares live-data paper execution; it is not yet an authenticated, unattended broker-data deployment.
 
-The primary product is Indian Equity Forecasting & Paper Trading with a ₹10,00,000 simulated mandate and a screenshot-derived watchlist. Phase 2 is US equities, Phase 3 is other global markets, Phase 4 is RoyaltyIQ, and Phase 5 is MES futures and derivatives. The system is paper-only and cannot guarantee zero losses.
+## Current operational boundary
 
-> The bundled CSV is synthetic. It validates the software path, not a trading edge. The dashboard never places orders. Live autonomous transmission is disabled in the committed configuration.
+The old Yahoo/GitHub paper execution loops were retired because they bypassed reconciliation, accepted same-day stale data, and wrote state and fills separately. Their manual entry points now record observation-only status and regenerate Pages; their cron triggers are removed. Existing legacy ledgers remain unchanged as evidence; no unverified balances are imported into the new broker.
 
-The latest point-in-time factor search failed its blind five-year holdout and was not deployed. See [RESEARCH_RESULTS.md](RESEARCH_RESULTS.md) for the complete decision record.
+The new `qts.platform` entry point accepts a timestamped, independently validated input bundle and executes only internal paper orders. India is configured for paper; US/global remain research until independently enabled for paper validation. None can transmit real orders, even if a caller asks for it.
 
-## Automated paper trading on GitHub
+Market data → completed-session ranking → one target per security → quote and risk validation → ledger reconciliation → sell-before-buy order plan → internal paper fills → atomic SQLite state → shared Pages/Streamlit phase model.
 
-GitHub Actions requests a paper-portfolio check every five minutes during NSE hours, the maximum GitHub cron frequency, using offset minutes to reduce scheduler congestion. GitHub may still delay or drop scheduled jobs. Monitoring runs use five-minute Yahoo convenience candles to refresh held-position prices without forcing a trade; 60-session reviews use five years of daily data to rank the current Nifty 50 by 63-session risk-adjusted momentum, hold five stocks, and retain existing holdings while they remain in the top ten. A 20% annualized Nifty volatility target scales equity exposure between 50% and 100%; unavailable risk data blocks paper orders. A robust price/volume/range anomaly veto remains active for new selections, stale quotes cannot trigger orders, and corporate actions are checked once per session. Results are simulated and saved in `runtime/`; the public summary shows the last successful scan, latest data timestamp, and a browser-side missed-scan warning.
+## Strategy and universes
 
-Yahoo-adjusted OHLC data is used for total-return research. The forward paper ledger separately credits cash dividends, adjusts quantities and cost basis for reported splits/bonus-style ratios, deduplicates events, and reinvests available cash toward equal portfolio weights at the next 60-session review. Corporate-action data remains a convenience feed and should be reconciled against official company/exchange notices before any future live use.
+- **India:** preserve the 63-session risk-adjusted momentum / 5-position / top-10 retention / 60-session review reference. Next-open research, 20% emergency drawdown threshold and 28 calendar-day cooldown. The realtime config now agrees on five positions and 20% maximum target weight. Broader research begins with audited PIT Nifty 100, then Nifty 200 if data quality supports it. Require 252 observations, ₹50 raw price and ₹10 crore median daily traded value over 60 sessions, dated membership/security identity, current observations and corporate-action quality. Thresholds are predeclared research filters, not empirically validated optimal values. Nifty 500 requires a separate coverage audit.
+- **US:** current liquid ETF diagnostic basket SPY, IWM, MDY, RSP, QQQ against adjusted SPY; PIT stock selection remains a challenger pending reliable delisted-stock coverage. Highly correlated ETFs are not claimed to diversify country exposure.
+- **Global:** one country/region ETF for United States (SPY), Canada (EWC), United Kingdom (EWU), Eurozone (EZU), Switzerland (EWL), Japan (EWJ), Australia (EWA), Hong Kong (EWH), Singapore (EWS), India (INDA), Taiwan (EWT), South Korea (EWY), Brazil (EWZ). Benchmark VT; USD-listed proxies, with local economic/FX exposure. One instrument per country and a 20% target cap limit US dominance. Correlation/sector overlap still needs separate validation. Liquidity filters may exclude a market; do not silently relax them.
 
-This is suitable for forward-testing daily/swing decisions. GitHub schedules may be delayed and the public feed is not exchange-grade, so it is not suitable for exact intraday execution. No broker credentials are used and real orders remain disabled.
+No new strategy is promoted. The prior 108-configuration factor search failed out of sample and remains rejected. Old rotation research is preserved only in `archive/rejected_rotation/`, with no active UI, config, scheduler or strategy import.
 
-The emergency portfolio circuit breaker liquidates paper positions at a 20% drawdown, pauses entries for 28 calendar days, resets the paper high-water mark, and requires all market and stock gates to pass again before re-entry. Historical testing showed that the previous 5% threshold repeatedly sold normal equity volatility and materially harmed results. The wider threshold preserves a final-loss backstop without pretending that ordinary drawdowns can be eliminated. It is not a guarantee against gaps or larger losses.
+## Run locally
 
-The public GitHub Pages view uses a responsive portfolio layout with account KPIs, exposure and drawdown controls, holdings, recent fills, schedule health, and a portfolio-versus-Nifty chart built from successful scans. One-click tabs separate Indian and US paper observation, research-only Phase 2.5 India–US rotation, and locked Phase 3 global research. Phase 2 uses a separate $10,000 simulated ledger and defensive stock-selection rules. A research-only 70% SPY/30% ETF momentum core-satellite model improved long-term returns but was not promoted because it still trailed SPY and materially increased drawdown. Phase 2.5 has historical results only and no scheduler or ledger. No broker or real-order path exists. The automation is controlled by [`configs/paper-trader.json`](configs/paper-trader.json); set `"us_enabled": false` to stop new US paper activity.
-
-## Quick start
-
-```bash
+```
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -e '.[dev,ibkr]'
+pip install -e '.[dev]'
+ruff check .
 pytest -q
+python -m compileall -q src scripts app.py
+python -m qts.dashboard
 streamlit run app.py
 ```
 
-Open <http://localhost:8501>. For the full private GitHub, Streamlit Community Cloud, Docker, and IBKR setup, see [START_HERE.md](START_HERE.md).
+The two dashboards share `qts.dashboard.phase_snapshot`. Missing operational metrics show “Not measured”; missing reconciliation shows failure/unverified, never a fabricated PASS. Archived forward observations are explicitly delayed Yahoo data. The realtime config expresses a target integration, not proof of a live feed.
 
-## Safety boundary
+## Validated paper input
 
-This repository is production-shaped for paper/staging operations. It is not certified as profitable, fault-tolerant, or suitable for unattended real-money trading. Live promotion requires a deliberate config change plus four runtime acknowledgements; it also requires completing the evidence checklist in [PRODUCTION_READINESS.md](PRODUCTION_READINESS.md).
+```
+python -m qts.platform --phase india --bundle /private/path/validated-input.json
+```
 
-## Real-time India paper mode
+Bundle fields: `signal_id`, `signal_at` (aware UTC datetime), `targets` (stable security ID → integer shares), `quotes`, `validators`, `market_open: true`, `corporate_actions_verified: true`. Each quote contains `symbol,last,bid,ask,timestamp,provider,bid_size,ask_size`. Providers must match phase settings and security identities must agree. The trusted collector must establish official session and corporate-action facts; these input attestations are not a replacement for the remaining provider integration.
 
-The recommended pre-live architecture is **real broker market data + internal simulated fills**. This keeps market observations realistic without transmitting money-bearing orders.
+The engine persists deterministic rebalance/order/fill IDs, rejects changed targets under an existing signal ID, crosses ask/bid plus adverse slippage, estimates fees, caps fills at displayed size, cancels IOC remainders, and blocks new orders on ledger mismatch. Replays return the stored result. A failed database write rolls back balances and fills. Default execution budget is 10 bps fees + 5 bps adverse slippage, with spread additionally measured from quotes.
 
-1. Create an Upstox API app and set `UPSTOX_ACCESS_TOKEN` for market data.
-2. Optionally create an Upstox Sandbox app and set `UPSTOX_SANDBOX_TOKEN` to validate order payload/lifecycle behavior without funds.
-3. Use `configs/realtime-paper.yaml`; `transmit_orders` remains false.
-4. Apply conservative spread/slippage assumptions to every simulated fill and compare theoretical signal price vs simulated execution price.
-5. Before any future live transmission, reconcile broker positions, cash, and open orders. Any mismatch must block new orders.
+Promotion gates require sufficient sessions/reviews/closed trades, positive net and benchmark-relative returns, drawdown and shortfall limits, holdout/walk-forward/neighbor/cost robustness and clean operational evidence. Sandbox validation alone cannot qualify a phase for a pilot. No real broker-order dispatch is implemented in this platform.
 
-Do not commit access tokens to GitHub. Sandbox success validates API integration, not strategy profitability or real-market fills.
+See [data contracts and research commands](DATA_ARCHITECTURE.md), [official provider matrix](PROVIDERS.md), [rebuild evidence and remaining work](REBUILD_REPORT.md), and [historical research record](RESEARCH_RESULTS.md).
+
+## Deployment
+
+Review the local diff before committing or pushing. After approval, CI checks the code and generates Pages; the existing Pages workflow publishes `docs/`. Durable SQLite execution belongs on a single persistent host with backups, not an ephemeral GitHub runner. Authenticate primary and validator feeds, map the security master, integrate official sessions/actions, and prove recovery before enabling unattended paper execution. Keep secrets out of Git and public dashboard artifacts.

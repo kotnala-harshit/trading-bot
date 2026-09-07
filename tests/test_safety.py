@@ -17,7 +17,7 @@ def test_all_live_gates_are_required():
         "LIVE_TRADING_ACK": LIVE_ACK,
         "IBKR_ACCOUNT_CONFIRMED": "true",
     }
-    assert evaluate_live_gate(config, env).allowed
+    assert not evaluate_live_gate(config, env).allowed
 
 
 def test_paper_is_allowed_by_order_guard():

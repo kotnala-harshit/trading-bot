@@ -26,7 +26,7 @@ def main() -> None:
                 {
                     "timestamp": datetime.now(UTC).isoformat(),
                     "environment": config["environment"],
-                    "status": "healthy",
+                    "status": "heartbeat_only_not_execution_health",
                 },
                 indent=2,
             )

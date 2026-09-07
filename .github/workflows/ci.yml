@@ -19,7 +19,8 @@ jobs:
       - run: pip install -e '.[dev]'
       - run: ruff check .
       - run: pytest -q
-      - run: python -m compileall -q src app.py
+      - run: python -m compileall -q src scripts app.py
+      - run: python -m qts.dashboard
       - run: python -m qts.runtime --once --config configs/production-paper.yaml
   docker:
     runs-on: ubuntu-latest

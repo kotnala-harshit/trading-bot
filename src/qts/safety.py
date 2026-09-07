@@ -22,6 +22,10 @@ def evaluate_live_gate(config: dict, env: dict[str, str] | None = None) -> Safet
         reasons.append("dry_run is enabled")
     if not execution.get("autonomous_order_transmission", False):
         reasons.append("autonomous order transmission is disabled")
+    if execution.get("transmit_orders") is not True:
+        reasons.append("transmit_orders is not explicitly true")
+    if config.get("phase_promotion_status") != "ELIGIBLE FOR SMALL LIVE PILOT":
+        reasons.append("independent phase promotion evidence is missing")
     required = {
         "TRADING_MODE": "live",
         "LIVE_TRADING_ENABLED": "true",
@@ -36,6 +40,8 @@ def evaluate_live_gate(config: dict, env: dict[str, str] | None = None) -> Safet
 
 def assert_order_allowed(config: dict, env: dict[str, str] | None = None) -> None:
     if config.get("environment") == "paper":
+        if config.get("execution", {}).get("transmit_orders", False) is not False:
+            raise PermissionError("Paper environment cannot transmit live orders")
         return
     decision = evaluate_live_gate(config, env)
     if not decision.allowed:

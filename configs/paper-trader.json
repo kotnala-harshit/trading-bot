@@ -1,4 +1,5 @@
 {
-  "enabled": true,
-  "us_enabled": true
+  "enabled": false,
+  "us_enabled": false,
+  "reason": "Legacy execution retired; new paper engine requires validated inputs"
 }

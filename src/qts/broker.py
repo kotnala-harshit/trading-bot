@@ -6,6 +6,7 @@ from typing import Protocol
 
 
 class OrderStatus(str, Enum):
+    CREATED = "created"
     SUBMITTED = "submitted"
     ACKNOWLEDGED = "acknowledged"
     PARTIALLY_FILLED = "partially_filled"
@@ -21,6 +22,9 @@ class Quote:
     bid: float | None = None
     ask: float | None = None
     timestamp: str | None = None
+    provider: str = "unknown"
+    bid_size: int | None = None
+    ask_size: int | None = None
 
 
 @dataclass(frozen=True)

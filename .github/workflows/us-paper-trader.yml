@@ -1,9 +1,6 @@
-name: US paper trader
+name: US legacy observation (manual)
 
 on:
-  schedule:
-    # Covers 09:30–16:00 New York through both daylight-saving offsets.
-    - cron: "2,7,12,17,22,27,32,37,42,47,52,57 13-21 * * 1-5"
   workflow_dispatch:
     inputs:
       force:

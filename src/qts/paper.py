@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
@@ -27,6 +28,10 @@ def execute_paper_fill(
     fee_bps: float = 10,
     slippage_bps: float = 0,
 ) -> tuple[float, int, PaperFill]:
+    if any(not math.isfinite(v) for v in (cash, position, quantity, price, fee_bps, slippage_bps)):
+        raise ValueError("Nonfinite paper order")
+    if not 0 <= fee_bps < 10000 or not 0 <= slippage_bps < 10000 or cash < 0 or position < 0:
+        raise ValueError("Invalid paper balances/costs")
     if side not in {"BUY", "SELL"} or quantity < 1 or price <= 0:
         raise ValueError("Invalid paper order")
     direction = 1 if side == "BUY" else -1

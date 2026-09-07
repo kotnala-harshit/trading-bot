@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "daily_research": {
+    "required": ["date", "security_id", "open", "close", "raw_close", "traded_value", "quality_ok"],
+    "primary_key": ["date", "security_id"],
+    "adjustments": "open and close: same total-return factor; raw_close and traded_value: unadjusted",
+    "validation": "qts.research.validate_inputs"
+  },
+  "security_master": {
+    "required": ["security_id", "provider", "symbol", "valid_from", "valid_to", "known_at", "exchange", "currency", "source"],
+    "optional": ["isin"],
+    "intervals": "half-open; exactly one provider-symbol match at decision time",
+    "validation": "qts.storage.resolve_security"
+  },
+  "universe_membership": {
+    "required": ["security_id", "effective_from", "effective_to", "known_at"],
+    "intervals": "half-open, nonoverlapping per security, publication time <= decision time",
+    "validation": "qts.research.validate_inputs and eligible_members"
+  },
+  "quote": {
+    "required": ["symbol", "last", "bid", "ask", "timestamp", "provider", "bid_size", "ask_size"],
+    "timestamp": "exchange feed timestamp; ISO8601 with UTC offset",
+    "validation": "qts.paper_broker.validate_quote and validate_pair"
+  },
+  "execution": {
+    "keys": ["signal_id", "rebalance_id", "order_id", "fill_id"],
+    "states": ["CREATED", "SUBMITTED", "ACKNOWLEDGED", "PARTIALLY_FILLED", "FILLED", "REJECTED", "CANCELLED"],
+    "storage": "SQLite primary keys, one transaction per rebalance",
+    "validation": "qts.paper_broker.PaperBroker"
+  }
+}

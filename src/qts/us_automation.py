@@ -5,7 +5,6 @@ import csv
 import io
 import json
 import math
-from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -14,9 +13,7 @@ import numpy as np
 import pandas as pd
 import requests
 
-from qts.paper import execute_paper_fill, mark_to_market
 from qts.providers import yahoo_chart
-from qts.strategy import risk_adjusted_momentum_score
 
 ROOT = Path(__file__).resolve().parents[2]
 STATE_PATH = ROOT / "runtime" / "us_paper_state.json"
@@ -87,94 +84,9 @@ def exposure(spy: pd.DataFrame) -> float:
 
 
 def run(force: bool = False) -> dict:
-    from qts.automation import load_state as load_india_state
     from qts.automation import render_page
-
-    state, now = load_state(), datetime.now(UTC)
-    state["last_attempt"] = now.isoformat()
-    control = json.loads(CONTROL_PATH.read_text())
-    if not control.get("us_enabled", False) or (not force and not us_market_is_open(now)):
-        state["status"] = "US paper disabled" if not control.get("us_enabled") else "US market closed"
-        save(state)
-        render_page(load_india_state(), {})
-        return state
-
-    day = now.astimezone(ZoneInfo("America/New_York")).date().isoformat()
-    try:
-        spy = yahoo_chart("SPY", "1y", "1d").frame
-        target = exposure(spy)
-    except (OSError, ValueError, TypeError, KeyError, requests.RequestException):
-        state["status"] = "Skipped: SPY risk data unavailable"
-        save(state)
-        return state
-
-    new_session = state.get("last_scan_date") != day
-    sessions = state.get("sessions_since_review", REVIEW_SESSIONS) + int(new_session)
-    review = not state["positions"] or sessions >= REVIEW_SESSIONS
-    symbols = current_members() if review else list(state["positions"])
-    with ThreadPoolExecutor(max_workers=16) as pool:
-        datasets = [item for item in pool.map(lambda symbol: fetch(symbol, review), symbols) if item]
-    candidates, quotes = [], {}
-    for dataset in datasets:
-        frame = dataset.frame
-        if frame.timestamp.iloc[-1].tz_convert(ZoneInfo("America/New_York")).date().isoformat() != day:
-            continue
-        price = float(frame.close.iloc[-1])
-        quotes[dataset.symbol] = price
-        score = risk_adjusted_momentum_score(frame) if review else None
-        if score is not None:
-            candidates.append((score, dataset.symbol, price))
-    if (review and len(candidates) < 350) or (not review and len(quotes) < len(symbols)):
-        state["status"] = f"Skipped: only {len(candidates) if review else len(quotes)} valid US quotes"
-        save(state)
-        render_page(load_india_state(), {})
-        return state
-
-    state.update(last_scan_date=day, sessions_since_review=sessions, exposure_target=target)
-    equity = state["cash"] + sum(
-        item["quantity"] * quotes.get(symbol, item["last_price"])
-        for symbol, item in state["positions"].items()
-    )
-    state["peak_equity"] = max(state.get("peak_equity", equity), equity)
-    fills, ranked = [], sorted(candidates, reverse=True)
-    allowed = {symbol for _, symbol, _ in ranked[:KEEP_RANK]} if target else set()
-    for symbol in list(state["positions"]):
-        item, price = state["positions"][symbol], quotes[symbol]
-        if target == 0 or (review and symbol not in allowed):
-            state["cash"], _, fill = execute_paper_fill(
-                state["cash"], item["quantity"], symbol=symbol, side="SELL",
-                quantity=item["quantity"], price=price, fee_bps=FEE_BPS,
-            )
-            fills.append(fill)
-            del state["positions"][symbol]
-    target_value = equity * target / MAX_POSITIONS
-    if review and target:
-        state["sessions_since_review"] = 0
-        for _, symbol, price in ranked:
-            if symbol in state["positions"] or len(state["positions"]) >= MAX_POSITIONS:
-                continue
-            quantity = min(int(target_value / price), int(state["cash"] / (price * 1.0005)))
-            if quantity:
-                state["cash"], _, fill = execute_paper_fill(
-                    state["cash"], 0, symbol=symbol, side="BUY", quantity=quantity,
-                    price=price, fee_bps=FEE_BPS,
-                )
-                fills.append(fill)
-                state["positions"][symbol] = {
-                    "quantity": quantity, "entry_price": price, "last_price": price,
-                    "opened_at": now.isoformat(),
-                }
-    for symbol, item in state["positions"].items():
-        item["last_price"] = quotes[symbol]
-    state["last_equity"] = state["cash"] + sum(
-        mark_to_market(0, item["quantity"], item["last_price"])
-        for item in state["positions"].values()
-    )
-    state["last_run"] = state["last_successful_scan"] = now.isoformat()
-    state["status"] = f"US paper {'review' if review else 'monitor'}; {len(fills)} fill(s); {target:.0%} exposure"
-    save(state, fills)
-    render_page(load_india_state(), {})
-    return state
+    from qts.platform import observe_legacy
+    return observe_legacy(ROOT, "us", STATE_PATH, load_state(), render_page)
 
 
 def main() -> None:
