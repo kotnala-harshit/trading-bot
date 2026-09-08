@@ -1,6 +1,9 @@
-name: US legacy observation (manual)
+name: US paper observation
 
 on:
+  schedule:
+    # Covers 09:30-16:00 New York through both DST offsets; runtime decides market status.
+    - cron: "2,7,12,17,22,27,32,37,42,47,52,57 13-21 * * 1-5"
   workflow_dispatch:
     inputs:
       force:

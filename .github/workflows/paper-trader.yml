@@ -1,6 +1,9 @@
-name: India legacy observation (manual)
+name: India paper observation
 
 on:
+  schedule:
+    # 09:15-15:30 Asia/Kolkata. GitHub cron is UTC; jobs may be delayed.
+    - cron: "2,7,12,17,22,27,32,37,42,47,52,57 3-10 * * 1-5"
   workflow_dispatch:
     inputs:
       force:

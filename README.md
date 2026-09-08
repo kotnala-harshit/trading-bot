@@ -4,7 +4,7 @@ Exactly three active phases: **India**, **US**, **Global**. Real-money transmiss
 
 ## Current operational boundary
 
-The old Yahoo/GitHub paper execution loops were retired because they bypassed reconciliation, accepted same-day stale data, and wrote state and fills separately. Their manual entry points now record observation-only status and regenerate Pages; their cron triggers are removed. Existing legacy ledgers remain unchanged as evidence; no unverified balances are imported into the new broker.
+The old Yahoo/GitHub paper execution loops were retired because they bypassed reconciliation, accepted same-day stale data, and wrote state and fills separately. Their scheduled weekday observation runs now refresh status and the dashboard during India/US hours; they do not create orders. Existing legacy ledgers remain unchanged as evidence; no unverified balances are imported into the new broker.
 
 The new `qts.platform` entry point accepts a timestamped, independently validated input bundle and executes only internal paper orders. India is configured for paper; US/global remain research until independently enabled for paper validation. None can transmit real orders, even if a caller asks for it.
 

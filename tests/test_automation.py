@@ -1,5 +1,6 @@
 import json
 from datetime import UTC, datetime
+from pathlib import Path
 
 import pandas as pd
 
@@ -50,6 +51,14 @@ def test_hub_control_can_disable_paper_orders(tmp_path, monkeypatch) -> None:
     control.write_text(json.dumps({"enabled": False}))
     monkeypatch.setattr(automation, "CONTROL_PATH", control)
     assert not automation.trading_enabled()
+
+
+def test_observation_workflows_run_on_weekdays() -> None:
+    root = Path(__file__).resolve().parents[1]
+    for name in ("paper-trader.yml", "us-paper-trader.yml"):
+        workflow = (root / ".github" / "workflows" / name).read_text()
+        assert "  schedule:\n" in workflow
+        assert "* * 1-5" in workflow
 
 
 def test_dashboard_records_and_renders_portfolio_history(tmp_path, monkeypatch) -> None:
