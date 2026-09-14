@@ -82,17 +82,22 @@ def quote_is_current(latest_timestamp, us_day: str) -> bool:
 
 def record_observation(state: dict, now: datetime) -> dict:
     """Record delayed marks only; this path never creates or transmits orders."""
+    from qts.alpaca import get_quote
+
     symbols = [*state.get("positions", {}), "SPY"]
     us_day = now.astimezone(ZoneInfo("America/New_York")).date().isoformat()
     marks = {}
     timestamps = []
-    for symbol in symbols:
-        dataset = fetch(symbol, False)
-        if dataset is None or dataset.frame.empty or not quote_is_current(dataset.frame.timestamp.iloc[-1], us_day):
-            state["status"] = "US observation skipped: delayed Yahoo marks are incomplete or stale; no orders"
+    try:
+        for symbol in symbols:
+            quote = get_quote(symbol)
+            if not quote_is_current(pd.Timestamp(quote.timestamp), us_day):
+                raise ValueError(f"stale Alpaca IEX quote for {symbol}")
+            marks[symbol] = quote.last
+            timestamps.append(quote.timestamp)
+    except (OSError, ValueError, requests.RequestException) as error:
+            state["status"] = f"US observation skipped: {error}; no orders"
             return state
-        marks[symbol] = float(dataset.frame.close.iloc[-1])
-        timestamps.append(dataset.frame.timestamp.iloc[-1].isoformat())
     for symbol, position in state.get("positions", {}).items():
         position["last_price"] = marks[symbol]
     equity = state["cash"] + sum(position["quantity"] * marks[symbol] for symbol, position in state.get("positions", {}).items())
@@ -102,7 +107,7 @@ def record_observation(state: dict, now: datetime) -> dict:
     state["equity_history"] = state["equity_history"][-5000:]
     state["last_successful_scan"] = now.isoformat()
     state["latest_data_at"] = min(timestamps)
-    state["status"] = "US observation recorded from delayed Yahoo marks; no orders"
+    state["status"] = "US observation recorded from Alpaca IEX market data; no orders"
     return state
 
 

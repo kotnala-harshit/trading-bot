@@ -31,7 +31,7 @@ python -m qts.dashboard
 streamlit run app.py
 ```
 
-The two dashboards share `qts.dashboard.phase_snapshot`. Missing operational metrics show “Not measured”; missing reconciliation shows failure/unverified, never a fabricated PASS. Archived forward observations are explicitly delayed Yahoo data. The realtime config expresses a target integration, not proof of a live feed.
+The two dashboards share `qts.dashboard.phase_snapshot`. Missing operational metrics show “Not measured”; missing reconciliation shows failure/unverified, never a fabricated PASS. India observations use FYERS quotes when `FYERS_APP_ID` and `FYERS_ACCESS_TOKEN` are present. US observations use Alpaca's free IEX latest-quote endpoint when `ALPACA_API_KEY` and `ALPACA_API_SECRET` are present. Missing or stale credentials skip the observation; Yahoo remains research-only and is never presented as live input.
 
 ## Validated paper input
 
@@ -50,3 +50,12 @@ See [data contracts and research commands](DATA_ARCHITECTURE.md), [official prov
 ## Deployment
 
 Review the local diff before committing or pushing. After approval, CI checks the code and generates Pages; the existing Pages workflow publishes `docs/`. Durable SQLite execution belongs on a single persistent host with backups, not an ephemeral GitHub runner. Authenticate primary and validator feeds, map the security master, integrate official sessions/actions, and prove recovery before enabling unattended paper execution. Keep secrets out of Git and public dashboard artifacts.
+
+### Enable the free live-data observations
+
+Add these repository Secrets in GitHub, then manually run each observation workflow once during its market session:
+
+- India: `FYERS_APP_ID`, `FYERS_ACCESS_TOKEN`
+- US: `ALPACA_API_KEY`, `ALPACA_API_SECRET`
+
+The workflows take five-minute read-only snapshots. FYERS supplies the India marks; Alpaca's free tier supplies IEX marks for the US basket. They refresh portfolio, benchmark and drawdown graphs, but do not submit orders.

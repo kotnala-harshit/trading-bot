@@ -1,7 +1,6 @@
 import json
 from datetime import UTC, datetime
 from pathlib import Path
-from types import SimpleNamespace
 
 import pandas as pd
 
@@ -12,6 +11,7 @@ from qts.automation import (
     market_is_open,
     quote_is_current,
 )
+from qts.broker import Quote
 from qts.dashboard import drawdown_chart, performance_chart
 from qts.us_automation import exposure, us_market_is_open
 from qts.us_automation import quote_is_current as us_quote_is_current
@@ -41,12 +41,20 @@ def test_us_chart_uses_spy_and_current_session_marks() -> None:
 
 
 def test_us_observation_records_portfolio_and_spy(monkeypatch) -> None:
-    frame = pd.DataFrame({"timestamp": [pd.Timestamp("2026-09-01T15:00:00Z")], "close": [100.0]})
-    monkeypatch.setattr(us_automation, "fetch", lambda symbol, review: SimpleNamespace(frame=frame.assign(close=200.0 if symbol == "SPY" else 100.0)))
+    monkeypatch.setattr("qts.alpaca.get_quote", lambda symbol: Quote(symbol, 200.0 if symbol == "SPY" else 100.0, timestamp="2026-09-01T15:00:00+00:00"))
     state = {"cash": 9_000, "positions": {"ABC": {"quantity": 10}}, "peak_equity": 10_000}
     us_automation.record_observation(state, datetime(2026, 9, 1, 15, 5, tzinfo=UTC))
     assert state["last_equity"] == 10_000
     assert state["equity_history"][-1]["benchmark"] == 200
+    assert "no orders" in state["status"]
+
+
+def test_india_observation_records_fyers_marks(monkeypatch) -> None:
+    monkeypatch.setattr("qts.fyers.get_depth", lambda symbol, security_id: Quote(security_id, 100.0, timestamp="2026-09-01T04:00:00+00:00"))
+    state = {"cash": 9_000, "positions": {"TCS.NS": {"quantity": 10}}, "peak_equity": 10_000}
+    automation.record_observation(state, datetime(2026, 9, 1, 4, 5, tzinfo=UTC))
+    assert state["last_equity"] == 10_000
+    assert state["equity_history"][-1]["nifty"] == 100
     assert "no orders" in state["status"]
 
 
@@ -76,10 +84,11 @@ def test_hub_control_can_disable_paper_orders(tmp_path, monkeypatch) -> None:
 
 def test_observation_workflows_run_on_weekdays() -> None:
     root = Path(__file__).resolve().parents[1]
-    for name in ("paper-trader.yml", "us-paper-trader.yml"):
+    for name, secret in (("paper-trader.yml", "FYERS_APP_ID"), ("us-paper-trader.yml", "ALPACA_API_KEY")):
         workflow = (root / ".github" / "workflows" / name).read_text()
         assert "  schedule:\n" in workflow
         assert "* * 1-5" in workflow
+        assert f"secrets.{secret}" in workflow
 
 
 def test_dashboard_records_and_renders_portfolio_history(tmp_path, monkeypatch) -> None:

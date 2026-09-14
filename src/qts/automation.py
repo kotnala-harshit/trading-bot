@@ -7,6 +7,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+import requests
+
 ROOT = Path(__file__).resolve().parents[2]
 STATE_PATH = ROOT / "runtime" / "paper_state.json"
 LEDGER_PATH = ROOT / "runtime" / "paper_ledger.csv"
@@ -57,7 +59,7 @@ def drawdown_stop_triggered(drawdown: float, has_positions: bool) -> bool:
 
 
 def quote_is_current(latest_timestamp, india_day: str) -> bool:
-    return latest_timestamp.tz_convert(ZoneInfo("Asia/Kolkata")).date().isoformat() == india_day
+    return latest_timestamp.astimezone(ZoneInfo("Asia/Kolkata")).date().isoformat() == india_day
 
 
 def trading_enabled() -> bool:
@@ -85,14 +87,55 @@ def record_history(state: dict, timestamp: str, nifty: float) -> None:
     state["equity_history"] = history[-5000:]
 
 
+def fyers_symbol(symbol: str) -> str:
+    return f"NSE:{symbol.removesuffix('.NS')}-EQ"
+
+
+def record_observation(state: dict, now: datetime) -> dict:
+    """Record FYERS marks only; this path does not create or transmit orders."""
+    from qts.fyers import get_depth
+
+    india_day = now.astimezone(ZoneInfo("Asia/Kolkata")).date().isoformat()
+    quotes = {}
+    try:
+        for symbol, position in state.get("positions", {}).items():
+            quote = get_depth(fyers_symbol(symbol), symbol)
+            if not quote_is_current(datetime.fromisoformat(quote.timestamp), india_day):
+                raise ValueError(f"stale FYERS quote for {symbol}")
+            quotes[symbol] = quote
+            position["last_price"] = quote.last
+        nifty = get_depth("NSE:NIFTY50-INDEX", "NIFTY50")
+        if not quote_is_current(datetime.fromisoformat(nifty.timestamp), india_day):
+            raise ValueError("stale FYERS quote for Nifty 50")
+    except (OSError, ValueError, requests.RequestException) as error:
+        state["status"] = f"India observation skipped: {error}; no orders"
+        return state
+    equity = state["cash"] + sum(position["quantity"] * quotes[symbol].last for symbol, position in state.get("positions", {}).items())
+    state["last_equity"] = equity
+    state["peak_equity"] = max(state.get("peak_equity", equity), equity)
+    record_history(state, now.isoformat(), nifty.last)
+    state["last_successful_scan"] = now.isoformat()
+    state["latest_data_at"] = min([quote.timestamp for quote in quotes.values()] + [nifty.timestamp])
+    state["status"] = "India observation recorded from FYERS market data; no orders"
+    return state
+
+
 def render_page(state: dict, quotes: dict[str, float]) -> None:
     from qts.dashboard import render_dashboard
     render_dashboard(ROOT, PAGE_PATH, india_state=state, quotes=quotes)
 
 
 def run(force: bool = False) -> dict:
-    from qts.platform import observe_legacy
-    return observe_legacy(ROOT, "india", STATE_PATH, load_state(), render_page)
+    now = datetime.now(UTC)
+    state = load_state()
+    state["last_attempt"] = now.isoformat()
+    if force or market_is_open(now):
+        record_observation(state, now)
+    else:
+        state["status"] = "NSE market closed; no observation or orders"
+    STATE_PATH.write_text(json.dumps(state, indent=2, sort_keys=True))
+    render_page(state, {})
+    return state
 
 
 def main() -> None:

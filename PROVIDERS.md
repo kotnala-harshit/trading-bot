@@ -25,9 +25,9 @@ For an Ireland-based account, confirm provider residency/KYC eligibility and ETF
 
 ## Accounts to create manually
 
-India: eligible Upstox trading account + API app + separate Sandbox app, and FYERS account/API app. Set `UPSTOX_ACCESS_TOKEN` and `UPSTOX_SANDBOX_TOKEN` only in environment/secrets. FYERS streaming integration is still to be wired and authenticated.
+India: eligible Upstox trading account + API app + separate Sandbox app, and FYERS account/API app. Set `UPSTOX_ACCESS_TOKEN` and `UPSTOX_SANDBOX_TOKEN` only in environment/secrets. The scheduled India observer uses read-only FYERS snapshots when `FYERS_APP_ID` and `FYERS_ACCESS_TOKEN` are stored as repository secrets.
 
-US/global: Alpaca paper-only account for IEX observations, plus IBKR paper credentials and relevant exchange subscriptions if using it as validator. Authenticate using each provider's supported flow. Never paste tokens into the dashboard or commit them. The current code has read-only Upstox full-quote and FYERS depth adapters; other live provider transports remain integration work. FYERS requires `FYERS_APP_ID` and `FYERS_ACCESS_TOKEN`; its REST depth freshness conservatively uses last-trade time. See the [official FYERS market-data reference](https://github.com/FyersDev/fyers-skills/blob/master/skills/fyers-trading/references/market-data.md).
+US/global: Alpaca paper-only account for IEX observations, plus IBKR paper credentials and relevant exchange subscriptions if using it as validator. Authenticate using each provider's supported flow. Never paste tokens into the dashboard or commit them. The scheduled US observer uses read-only Alpaca IEX snapshots when `ALPACA_API_KEY` and `ALPACA_API_SECRET` are stored as repository secrets. The current code also has read-only Upstox full-quote and FYERS depth adapters. FYERS requires `FYERS_APP_ID` and `FYERS_ACCESS_TOKEN`; its REST depth freshness conservatively uses last-trade time. See the [official FYERS market-data reference](https://github.com/FyersDev/fyers-skills/blob/master/skills/fyers-trading/references/market-data.md).
 
 ## Architecture sources
 

@@ -1,5 +1,6 @@
 import pandas as pd
 
+from qts.alpaca import parse_quote
 from qts.providers import _normalize, _parse_corporate_actions
 
 
@@ -31,3 +32,8 @@ def test_yahoo_corporate_action_parser():
     assert [(action.kind, action.amount, action.numerator) for action in actions] == [
         ("DIVIDEND", 4.5, 1.0), ("SPLIT", 0.0, 2.0)
     ]
+
+
+def test_alpaca_quote_uses_iex_bid_ask_midpoint():
+    quote = parse_quote({"quote": {"t": "2026-09-01T15:00:00Z", "bp": 100, "ap": 102, "bs": 4, "as": 5}}, "SPY")
+    assert (quote.last, quote.provider, quote.bid_size) == (101, "alpaca-iex", 4)
