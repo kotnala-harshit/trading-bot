@@ -134,6 +134,20 @@ def performance_chart(history: list, benchmark_label: str) -> str:
     label = html.escape(benchmark_label)
     return f"<svg viewBox='0 0 800 260' role='img' aria-label='Recorded portfolio and {label} return by scan'><text x='5' y='25'>{high:.1%}</text><text x='5' y='220'>{low:.1%}</text>{''.join(lines)}<text x='50' y='250'>Recorded scans (chronological)</text></svg><p>Blue: portfolio. Gray: {label}. Return since first recorded scan; {html.escape(history[0]['timestamp'][:10])} to {html.escape(history[-1]['timestamp'][:10])}. Uneven scan intervals are equally spaced.</p>"
 
+
+def drawdown_chart(history: list) -> str:
+    if len(history) < 2:
+        return ""
+    peak = history[0]["equity"]
+    values = []
+    for point in history:
+        peak = max(peak, point["equity"])
+        values.append(point["equity"] / peak - 1)
+    low = min(values)
+    span = -low or .01
+    points = " ".join(f"{50 + i / (len(values)-1) * 700:.1f},{40-v/span*180:.1f}" for i, v in enumerate(values))
+    return f"<h3>Portfolio drawdown</h3><svg viewBox='0 0 800 260' role='img' aria-label='Recorded portfolio drawdown by scan'><text x='5' y='25'>0.0%</text><text x='5' y='220'>{low:.1%}</text><polyline fill='none' stroke='#b65036' stroke-width='2' points='{points}'/><text x='50' y='250'>Recorded scans (chronological)</text></svg>"
+
 def render_dashboard(root: Path, path: Path, india_state=None, quotes=None) -> None:
     panels = []
     titles = ["India · Phase 1", "US equities · Phase 2", "Other global markets · Phase 3"]
@@ -148,7 +162,7 @@ def render_dashboard(root: Path, path: Path, india_state=None, quotes=None) -> N
         featured = "".join(f"<div><small>{label}</small><strong>{html.escape(display(snapshot['metrics'][key]))}</strong></div>" for key, label in [("portfolio_value", "Portfolio value · " + snapshot["currency"]), ("cash", "Available cash"), ("cumulative_pnl", "Cumulative P&L"), ("current_drawdown", "Drawdown · decimal ratio")])
         research_rows = [{"window": k, "total_return": v["total_return"], "cagr": v["cagr"], "benchmark_cagr": v["benchmark_cagr"], "max_drawdown": v["max_drawdown"], "trades": v["trades"], "win_rate": v["win_rate"]} for k, v in snapshot["research"].get("windows", {}).items()]
         cost_rows = [{"one_way_bps": k, "cagr": v["cagr"], "max_drawdown": v["max_drawdown"]} for k, v in snapshot["research"].get("cost_stress", {}).items()]
-        chart = performance_chart(snapshot["history"], snapshot["benchmark_label"])
+        chart = performance_chart(snapshot["history"], snapshot["benchmark_label"]) + drawdown_chart(snapshot["history"])
         legacy_note = "<p>ETERNAL's 613 + 1 shares were initial entry and a same-review top-up. Historical rows are preserved.</p>" if phase == "india" else ""
         panels.append(f"""<section id='{phase}' class='phase' {'hidden' if phase != 'india' else ''}>
 <h1>{title}</h1><p>{html.escape(snapshot['status'])}</p><div class='safety'>{cards}</div>

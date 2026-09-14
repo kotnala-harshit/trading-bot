@@ -12,7 +12,7 @@ from qts.automation import (
     market_is_open,
     quote_is_current,
 )
-from qts.dashboard import performance_chart
+from qts.dashboard import drawdown_chart, performance_chart
 from qts.us_automation import exposure, us_market_is_open
 from qts.us_automation import quote_is_current as us_quote_is_current
 
@@ -35,6 +35,7 @@ def test_us_market_window_and_defensive_exposure() -> None:
 def test_us_chart_uses_spy_and_current_session_marks() -> None:
     history = [{"timestamp": "2026-09-01T14:00:00+00:00", "equity": 10_000, "benchmark": 600}, {"timestamp": "2026-09-01T14:05:00+00:00", "equity": 10_100, "benchmark": 603}]
     assert "SPY adjusted total-return proxy" in performance_chart(history, "SPY adjusted total-return proxy")
+    assert "Portfolio drawdown" in drawdown_chart(history)
     assert us_quote_is_current(pd.Timestamp("2026-09-01T14:00:00Z"), "2026-09-01")
     assert not us_quote_is_current(pd.Timestamp("2026-08-31T14:00:00Z"), "2026-09-01")
 
