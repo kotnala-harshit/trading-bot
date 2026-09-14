@@ -14,6 +14,11 @@ def read_json(path: Path) -> dict:
     return json.loads(path.read_text()) if path.exists() else {}
 
 
+def comparable_history(history: list[dict]) -> list[dict]:
+    """Keep only observations that can support a portfolio/benchmark chart."""
+    return [point for point in history if point.get("equity") and point.get("benchmark", point.get("nifty"))]
+
+
 def phase_snapshot(root: Path, phase: str, legacy: dict | None = None) -> dict:
     config = load_phases(root)
     settings = config[phase]
@@ -47,8 +52,10 @@ def phase_snapshot(root: Path, phase: str, legacy: dict | None = None) -> dict:
     orders = live.get("last_result", {}).get("orders", [])
     reconciliation = live.get("reconciliation", {})
     exposure = (equity - cash) / equity if equity and cash is not None else None
-    history = state.get("equity_history", [])
-    benchmark = (history[-1]["nifty"] / history[0]["nifty"] - 1) if len(history) > 1 else None
+    history = comparable_history(state.get("equity_history", []))
+    benchmark_label = "Nifty 50 price index" if phase == "india" else settings.get("benchmark", "Benchmark")
+    benchmark_values = [point.get("benchmark", point.get("nifty")) for point in history]
+    benchmark = (benchmark_values[-1] / benchmark_values[0] - 1) if len(history) > 1 else None
     total_return = equity / capital - 1 if equity is not None else None
     peak = max([capital] + [x["equity"] for x in history] + ([equity] if equity else []))
     drawdown = equity / peak - 1 if equity else None
@@ -92,7 +99,7 @@ def phase_snapshot(root: Path, phase: str, legacy: dict | None = None) -> dict:
             "system_health": "BLOCKED" if not live else live["last_result"]["status"],
             "status": ("Legacy execution retired; preserved observations only. Last recorded status: " + state.get("status", "Unknown")) if state and not live else state.get("status", "Research only; no paper account activated"),
             "universe": settings.get("markets", settings.get("etfs", settings["universe"])),
-            "history": history}
+            "history": history, "benchmark_label": benchmark_label}
 
 
 def display(value) -> str:
@@ -113,18 +120,19 @@ def table(rows: list[dict]) -> str:
 
 
 
-def performance_chart(history: list) -> str:
+def performance_chart(history: list, benchmark_label: str) -> str:
     if len(history) < 2:
-        return "<p>Insufficient recorded observations for a performance chart.</p>"
+        return "<p>Portfolio/benchmark chart begins after two successful observations.</p>"
     series = [[p["equity"] / history[0]["equity"] - 1 for p in history],
-              [p["nifty"] / history[0]["nifty"] - 1 for p in history]]
+              [p.get("benchmark", p.get("nifty")) / history[0].get("benchmark", history[0].get("nifty")) - 1 for p in history]]
     low, high = min(map(min, series)), max(map(max, series))
     span = high - low or .01
     lines = []
     for values, color in zip(series, ["#176a90", "#828a92"]):
         points = " ".join(f"{50 + i / (len(values)-1) * 700:.1f},{220-(v-low)/span*180:.1f}" for i,v in enumerate(values))
         lines.append(f"<polyline fill='none' stroke='{color}' stroke-width='2' points='{points}'/>")
-    return f"<svg viewBox='0 0 800 260' role='img' aria-label='Recorded portfolio and Nifty price-index return by scan'><text x='5' y='25'>{high:.1%}</text><text x='5' y='220'>{low:.1%}</text>{''.join(lines)}<text x='50' y='250'>Recorded scans (chronological)</text></svg><p>Blue: portfolio. Gray: Nifty price index. Return since first recorded scan; {html.escape(history[0]['timestamp'][:10])} to {html.escape(history[-1]['timestamp'][:10])}. Uneven scan intervals are equally spaced.</p>"
+    label = html.escape(benchmark_label)
+    return f"<svg viewBox='0 0 800 260' role='img' aria-label='Recorded portfolio and {label} return by scan'><text x='5' y='25'>{high:.1%}</text><text x='5' y='220'>{low:.1%}</text>{''.join(lines)}<text x='50' y='250'>Recorded scans (chronological)</text></svg><p>Blue: portfolio. Gray: {label}. Return since first recorded scan; {html.escape(history[0]['timestamp'][:10])} to {html.escape(history[-1]['timestamp'][:10])}. Uneven scan intervals are equally spaced.</p>"
 
 def render_dashboard(root: Path, path: Path, india_state=None, quotes=None) -> None:
     panels = []
@@ -140,14 +148,15 @@ def render_dashboard(root: Path, path: Path, india_state=None, quotes=None) -> N
         featured = "".join(f"<div><small>{label}</small><strong>{html.escape(display(snapshot['metrics'][key]))}</strong></div>" for key, label in [("portfolio_value", "Portfolio value · " + snapshot["currency"]), ("cash", "Available cash"), ("cumulative_pnl", "Cumulative P&L"), ("current_drawdown", "Drawdown · decimal ratio")])
         research_rows = [{"window": k, "total_return": v["total_return"], "cagr": v["cagr"], "benchmark_cagr": v["benchmark_cagr"], "max_drawdown": v["max_drawdown"], "trades": v["trades"], "win_rate": v["win_rate"]} for k, v in snapshot["research"].get("windows", {}).items()]
         cost_rows = [{"one_way_bps": k, "cagr": v["cagr"], "max_drawdown": v["max_drawdown"]} for k, v in snapshot["research"].get("cost_stress", {}).items()]
-        chart = performance_chart(snapshot["history"])
+        chart = performance_chart(snapshot["history"], snapshot["benchmark_label"])
+        legacy_note = "<p>ETERNAL's 613 + 1 shares were initial entry and a same-review top-up. Historical rows are preserved.</p>" if phase == "india" else ""
         panels.append(f"""<section id='{phase}' class='phase' {'hidden' if phase != 'india' else ''}>
 <h1>{title}</h1><p>{html.escape(snapshot['status'])}</p><div class='safety'>{cards}</div>
 <p class='warning'>Promotion: {snapshot['promotion']['status']} · Real-money transmission disabled. Legacy observations are not validated live-data paper evidence.</p>
 <div class='featured'>{featured}</div><article><h2>Portfolio performance</h2>{chart}<details><summary>All performance metrics</summary>{metrics}</details></article><details><summary>Risk monitor & system health</summary>{health}</details>
 <article><h2>Executed research · diagnostic only</h2>{table(research_rows)}<p>15 bps one-way; adjusted units, current ETF basket. No promotion. Values are decimal ratios; short periods show total return.</p><details><summary>Execution cost stress</summary>{table(cost_rows)}</details></article>
 <article><h2>Holdings</h2>{table(snapshot['holdings'])}</article>
-<article><h2>Recent activity · order lifecycle</h2>{table(snapshot['orders'])}<h3>Legacy fills — IDs were not recorded</h3>{table(snapshot['legacy_fills'])}<p>ETERNAL's 613 + 1 shares were initial entry and a same-review top-up. Historical rows are preserved.</p></article>
+<article><h2>Recent activity · order lifecycle</h2>{table(snapshot['orders'])}<h3>Legacy fills — IDs were not recorded</h3>{table(snapshot['legacy_fills'])}{legacy_note}</article>
 <details><summary>Candidate rankings and universe</summary>{table(snapshot['candidates'])}<p>{html.escape(display(snapshot['universe']))}</p></details>
 <details><summary>Independent promotion gates</summary>{table([{'gate': k, 'passed': v} for k,v in snapshot['promotion']['checks'].items()])}</details></section>""")
     page = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Three-phase trading research</title><style>

@@ -76,6 +76,36 @@ def fetch(symbol: str, review: bool):
         return None
 
 
+def quote_is_current(latest_timestamp, us_day: str) -> bool:
+    return latest_timestamp.tz_convert(ZoneInfo("America/New_York")).date().isoformat() == us_day
+
+
+def record_observation(state: dict, now: datetime) -> dict:
+    """Record delayed marks only; this path never creates or transmits orders."""
+    symbols = [*state.get("positions", {}), "SPY"]
+    us_day = now.astimezone(ZoneInfo("America/New_York")).date().isoformat()
+    marks = {}
+    timestamps = []
+    for symbol in symbols:
+        dataset = fetch(symbol, False)
+        if dataset is None or dataset.frame.empty or not quote_is_current(dataset.frame.timestamp.iloc[-1], us_day):
+            state["status"] = "US observation skipped: delayed Yahoo marks are incomplete or stale; no orders"
+            return state
+        marks[symbol] = float(dataset.frame.close.iloc[-1])
+        timestamps.append(dataset.frame.timestamp.iloc[-1].isoformat())
+    for symbol, position in state.get("positions", {}).items():
+        position["last_price"] = marks[symbol]
+    equity = state["cash"] + sum(position["quantity"] * marks[symbol] for symbol, position in state.get("positions", {}).items())
+    state["last_equity"] = equity
+    state["peak_equity"] = max(state.get("peak_equity", equity), equity)
+    state.setdefault("equity_history", []).append({"timestamp": now.isoformat(), "equity": equity, "benchmark": marks["SPY"]})
+    state["equity_history"] = state["equity_history"][-5000:]
+    state["last_successful_scan"] = now.isoformat()
+    state["latest_data_at"] = min(timestamps)
+    state["status"] = "US observation recorded from delayed Yahoo marks; no orders"
+    return state
+
+
 def exposure(spy: pd.DataFrame) -> float:
     if len(spy) < 201 or spy.close.iloc[-1] <= spy.close.ewm(span=200).mean().iloc[-1]:
         return 0.0
@@ -85,8 +115,16 @@ def exposure(spy: pd.DataFrame) -> float:
 
 def run(force: bool = False) -> dict:
     from qts.automation import render_page
-    from qts.platform import observe_legacy
-    return observe_legacy(ROOT, "us", STATE_PATH, load_state(), render_page)
+    now = datetime.now(UTC)
+    state = load_state()
+    state["last_attempt"] = now.isoformat()
+    if force or us_market_is_open(now):
+        record_observation(state, now)
+    else:
+        state["status"] = "US market closed; no observation or orders"
+    save(state)
+    render_page(None, {})
+    return state
 
 
 def main() -> None:

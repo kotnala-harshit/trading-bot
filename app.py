@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import pandas as pd
 import streamlit as st
 
 from qts.dashboard import phase_snapshot
@@ -15,6 +16,13 @@ for column, key in zip(cols, ["environment", "provider", "data_mode", "reconcili
 st.info(snapshot["status"])
 st.subheader(snapshot["promotion"]["status"])
 st.subheader("Portfolio performance")
+history = snapshot["history"]
+if len(history) > 1:
+    benchmark = [point.get("benchmark", point.get("nifty")) for point in history]
+    st.line_chart(pd.DataFrame({"Portfolio": [point["equity"] / history[0]["equity"] - 1 for point in history], snapshot["benchmark_label"]: [value / benchmark[0] - 1 for value in benchmark]}, index=pd.to_datetime([point["timestamp"] for point in history])))
+    st.caption("Cumulative return since the first recorded observation.")
+else:
+    st.caption("Portfolio/benchmark chart begins after two successful observations.")
 st.dataframe([{"metric": k, "value": str(v) if v is not None else "Not measured"} for k, v in snapshot["metrics"].items()], hide_index=True)
 st.caption("Currency: " + snapshot["currency"] + "; return, exposure and drawdown values are decimal ratios.")
 for title, key in [("Holdings", "holdings"), ("Orders", "orders"), ("Legacy fills", "legacy_fills"), ("Candidate rankings", "candidates")]:

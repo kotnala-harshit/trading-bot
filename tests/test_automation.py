@@ -1,17 +1,20 @@
 import json
 from datetime import UTC, datetime
 from pathlib import Path
+from types import SimpleNamespace
 
 import pandas as pd
 
-from qts import automation
+from qts import automation, us_automation
 from qts.automation import (
     cooldown_active,
     drawdown_stop_triggered,
     market_is_open,
     quote_is_current,
 )
+from qts.dashboard import performance_chart
 from qts.us_automation import exposure, us_market_is_open
+from qts.us_automation import quote_is_current as us_quote_is_current
 
 
 def test_nse_market_window() -> None:
@@ -27,6 +30,23 @@ def test_us_market_window_and_defensive_exposure() -> None:
     rising = pd.DataFrame({"timestamp": dates, "close": range(100, 320)})
     assert 0 < exposure(rising) <= 0.40
     assert exposure(rising.assign(close=list(range(320, 100, -1)))) == 0
+
+
+def test_us_chart_uses_spy_and_current_session_marks() -> None:
+    history = [{"timestamp": "2026-09-01T14:00:00+00:00", "equity": 10_000, "benchmark": 600}, {"timestamp": "2026-09-01T14:05:00+00:00", "equity": 10_100, "benchmark": 603}]
+    assert "SPY adjusted total-return proxy" in performance_chart(history, "SPY adjusted total-return proxy")
+    assert us_quote_is_current(pd.Timestamp("2026-09-01T14:00:00Z"), "2026-09-01")
+    assert not us_quote_is_current(pd.Timestamp("2026-08-31T14:00:00Z"), "2026-09-01")
+
+
+def test_us_observation_records_portfolio_and_spy(monkeypatch) -> None:
+    frame = pd.DataFrame({"timestamp": [pd.Timestamp("2026-09-01T15:00:00Z")], "close": [100.0]})
+    monkeypatch.setattr(us_automation, "fetch", lambda symbol, review: SimpleNamespace(frame=frame.assign(close=200.0 if symbol == "SPY" else 100.0)))
+    state = {"cash": 9_000, "positions": {"ABC": {"quantity": 10}}, "peak_equity": 10_000}
+    us_automation.record_observation(state, datetime(2026, 9, 1, 15, 5, tzinfo=UTC))
+    assert state["last_equity"] == 10_000
+    assert state["equity_history"][-1]["benchmark"] == 200
+    assert "no orders" in state["status"]
 
 
 def test_portfolio_cooldown_expires() -> None:
